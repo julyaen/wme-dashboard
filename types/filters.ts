@@ -19,6 +19,11 @@ export interface FilterState {
   dateFrom: string
   dateTo: string
 
+  ask1050: 'Both' | 'Yes' | 'No'
+  bid950: 'Both' | 'Yes' | 'No'
+  bid1050: 'Both' | 'Yes' | 'No'
+  ask950: 'Both' | 'Yes' | 'No'
+
   // Group 2 — Market structure
   wave2k: WaveFilter
   wave2m: WaveFilter
@@ -54,6 +59,12 @@ export const DEFAULT_FILTERS: FilterState = {
   wave2k: 'Both', wave2m: 'Both', wave30m: 'Both', wave30s: 'Both',
   entryVwap: 'Both', entryTB1: 'Both', entryTB2: 'Both',
   entryTB3: 'Both', entryBB1: 'Both', entryBB2: 'Both', entryBB3: 'Both',
+
+  ask1050: 'Both',
+  bid950: 'Both',
+  bid1050: 'Both',
+  ask950: 'Both',
+
   rawImbalance: 0,
   deltaMin: -1,    deltaMax: 1,
   e8kMin: -200,    e8kMax: 200,
