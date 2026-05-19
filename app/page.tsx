@@ -63,8 +63,8 @@ export default function DashboardPage() {
         <MetricCard label="Avg loser"     val={`-$${s.avgLoser.toFixed(2)}`}     cls="neg"                                       sub="per trade" />
         <MetricCard label="Profit factor" val={s.profitFactor.toFixed(2)}        cls={s.profitFactor >= 1.5 ? 'pos' : 'neg'}    sub="target ≥1.5" />
         <MetricCard label="Expectancy"    val={`$${s.expectancy.toFixed(2)}`}    cls={s.expectancy >= 0 ? 'pos' : 'neg'}        sub="per trade" />
-        <MetricCard label="Commission"    val={`$${s.totalCommission.toFixed(2)}`} cls="neg"                                    sub="total paid" />
-        <MetricCard label="Total trades"  val={String(trades.length)}            cls="neu"                                       sub={`${s.winRate}% WR`} />
+        <MetricCard label="Sharpe"        val={s.sharpe.toFixed(2)}              cls={s.sharpe >= 1 ? 'pos' : s.sharpe >= 0 ? 'neu' : 'neg'} sub="target ≥1.0" />
+        <MetricCard label="Recovery"      val={s.recoveryFactor.toFixed(2)}      cls={s.recoveryFactor >= 2 ? 'pos' : s.recoveryFactor >= 1 ? 'neu' : 'neg'} sub="net / |dd|" />
       </div>
 
       {/* ── Row 2: Weekly / Monthly / Streak / Long-Short ───────────────── */}

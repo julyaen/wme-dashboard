@@ -61,6 +61,54 @@ export default function AnalyticsPage() {
         ))}
       </div>
 
+      {/* Risk metrics row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 7 }}>
+        {[
+          {
+            label: 'Sharpe ratio',
+            val: s.sharpe.toFixed(2),
+            cls: s.sharpe >= 1 ? 'pos' : s.sharpe >= 0 ? 'neu' : 'neg',
+            sub: 'target ≥ 1.0',
+          },
+          {
+            label: 'Sortino ratio',
+            val: s.sortino.toFixed(2),
+            cls: s.sortino >= 1.5 ? 'pos' : s.sortino >= 0 ? 'neu' : 'neg',
+            sub: 'target ≥ 1.5',
+          },
+          {
+            label: 'Calmar ratio',
+            val: s.calmar.toFixed(2),
+            cls: s.calmar >= 1 ? 'pos' : s.calmar >= 0 ? 'neu' : 'neg',
+            sub: 'ann. return / dd',
+          },
+          {
+            label: 'Recovery factor',
+            val: s.recoveryFactor.toFixed(2),
+            cls: s.recoveryFactor >= 2 ? 'pos' : s.recoveryFactor >= 1 ? 'neu' : 'neg',
+            sub: 'net PnL / |dd|',
+          },
+          {
+            label: 'MFE capture',
+            val: `${s.avgMFECapture.toFixed(1)}%`,
+            cls: s.avgMFECapture >= 50 ? 'pos' : s.avgMFECapture >= 25 ? 'neu' : 'neg',
+            sub: 'avg % of move kept',
+          },
+          {
+            label: 'Daily std dev',
+            val: `$${s.stdDevDaily.toFixed(0)}`,
+            cls: 'neu',
+            sub: `avg $${s.avgDailyReturn.toFixed(0)}/day`,
+          },
+        ].map(m => (
+          <div key={m.label} className="card" style={{ padding: '9px 11px' }}>
+            <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 3 }}>{m.label}</div>
+            <div style={{ fontSize: 17, fontWeight: 500 }} className={m.cls}>{m.val}</div>
+            <div style={{ fontSize: 9, color: 'var(--t3)', marginTop: 2 }}>{m.sub}</div>
+          </div>
+        ))}
+      </div>
+
       {/* Equity + Drawdown */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         <div className="card">
@@ -305,6 +353,75 @@ export default function AnalyticsPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* AM vs PM Session Performance */}
+      <div className="card">
+        <div className="card-title">Session performance — AM vs PM</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {s.sessionStats.map(sess => {
+            const c = sess.session === 'AM' ? 'var(--blue)' : 'var(--purple)'
+            const dim = sess.session === 'AM' ? 'rgba(59,130,246,0.06)' : 'rgba(167,139,250,0.06)'
+            const border = sess.session === 'AM' ? 'rgba(59,130,246,0.18)' : 'rgba(167,139,250,0.18)'
+            return (
+              <div key={sess.session} style={{ background: dim, border: `1px solid ${border}`, borderRadius: 8, padding: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: c }}>
+                    {sess.session === 'AM' ? 'AM Session' : 'PM Session'}
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--t3)' }}>
+                    {sess.session === 'AM' ? 'before 12:00' : '12:00 and after'}
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 12 }}>
+                  {[
+                    { k: 'Trades',   v: String(sess.trades),                                                              vc: 'var(--t1)' },
+                    { k: 'Win rate', v: `${sess.winRate}%`,                                                               vc: sess.winRate >= 50 ? 'var(--green)' : 'var(--red)' },
+                    { k: 'Net PnL',  v: `${sess.netPnL >= 0 ? '+' : ''}$${sess.netPnL.toFixed(0)}`,                      vc: sess.netPnL >= 0 ? 'var(--green)' : 'var(--red)' },
+                    { k: 'Avg PnL',  v: `${sess.avgPnL >= 0 ? '+' : ''}$${sess.avgPnL.toFixed(2)}`,                      vc: sess.avgPnL >= 0 ? 'var(--green)' : 'var(--red)' },
+                  ].map(m => (
+                    <div key={m.k} style={{ background: 'var(--bg2)', borderRadius: 6, padding: '8px 10px', textAlign: 'center' }}>
+                      <div style={{ fontSize: 8, color: 'var(--t3)', marginBottom: 3, textTransform: 'uppercase', letterSpacing: '.4px' }}>{m.k}</div>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: m.vc }}>{m.v}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--t3)', marginBottom: 3 }}>
+                    <span>Win rate</span><span>{sess.winRate}%</span>
+                  </div>
+                  <div style={{ height: 4, background: 'var(--bg3)', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${sess.winRate}%`, background: c, borderRadius: 2 }} />
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Comparison bar */}
+        {s.sessionStats[0] && s.sessionStats[1] && s.sessionStats[0].trades + s.sessionStats[1].trades > 0 && (
+          <div style={{ marginTop: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--t3)', marginBottom: 4 }}>
+              <span>AM {s.sessionStats[0].trades}T ({((s.sessionStats[0].trades / (s.sessionStats[0].trades + s.sessionStats[1].trades)) * 100).toFixed(0)}%)</span>
+              <span>PM {s.sessionStats[1].trades}T ({((s.sessionStats[1].trades / (s.sessionStats[0].trades + s.sessionStats[1].trades)) * 100).toFixed(0)}%)</span>
+            </div>
+            <div style={{ height: 5, background: 'var(--bg3)', borderRadius: 3, overflow: 'hidden', display: 'flex' }}>
+              <div style={{
+                height: '100%',
+                width: `${(s.sessionStats[0].trades / (s.sessionStats[0].trades + s.sessionStats[1].trades)) * 100}%`,
+                background: 'var(--blue)', borderRadius: '3px 0 0 3px',
+              }} />
+              <div style={{
+                height: '100%',
+                flex: 1,
+                background: 'var(--purple)', borderRadius: '0 3px 3px 0',
+              }} />
+            </div>
+          </div>
+        )}
       </div>
 
     </div>

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useStore } from '@/lib/store'
 import { fmtDt, fmtDuration } from '@/lib/parser'
 import type { Trade } from '@/types'
@@ -141,8 +141,8 @@ export default function JournalPage() {
             </thead>
             <tbody>
               {paginated.map(tr => (
-                <>
-                  <tr key={tr.id} onClick={() => setExpanded(expanded === tr.id ? null : tr.id)}
+                <React.Fragment key={tr.id}>
+                  <tr onClick={() => setExpanded(expanded === tr.id ? null : tr.id)}
                     style={{ cursor: 'pointer' }}>
                     {/* Detail button */}
                     <td onClick={e => { e.stopPropagation(); setModalTrade(tr) }}
@@ -180,7 +180,7 @@ export default function JournalPage() {
                     </td>
                   </tr>
                   {expanded === tr.id && (
-                    <tr key={`${tr.id}-exp`}>
+                    <tr>
                       <td colSpan={17} style={{ background: 'var(--bg2)', padding: '10px 14px' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10, fontSize: 11 }}>
                           <div><div style={{ color: 'var(--t3)', fontSize: 9, marginBottom: 4 }}>WAVE STATES</div>
@@ -227,7 +227,7 @@ export default function JournalPage() {
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               ))}
             </tbody>
           </table>

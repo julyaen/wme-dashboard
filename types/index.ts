@@ -134,6 +134,15 @@ export interface BucketStats {
   winRate: number
 }
 
+export interface SessionStats {
+  session: string
+  trades: number
+  wins: number
+  netPnL: number
+  winRate: number
+  avgPnL: number
+}
+
 export interface DashboardStats {
   totalTrades: number
   winners: number
@@ -163,11 +172,20 @@ export interface DashboardStats {
   worstSetup: SetupStats | null
   longStats: { trades: number; wins: number; netPnL: number; winRate: number }
   shortStats: { trades: number; wins: number; netPnL: number; winRate: number }
-  // New: calendar, drawdown, rolling expectancy, weekday
   calendarData: Record<string, { netPnL: number; trades: number; wins: number }>
   drawdownCurve: { trade: number; cumPnL: number; drawdown: number; runningMax: number }[]
   maxDrawdown: number
   maxRunup: number
   rollingExpectancy: { trade: number; value: number | null }[]
   weekdayStats: { day: string; trades: number; wins: number; netPnL: number; winRate: number }[]
+  // Risk metrics
+  sharpe: number
+  sortino: number
+  calmar: number
+  recoveryFactor: number
+  avgDailyReturn: number
+  stdDevDaily: number
+  avgMFECapture: number
+  // Session
+  sessionStats: SessionStats[]
 }

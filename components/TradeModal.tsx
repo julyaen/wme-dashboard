@@ -1,6 +1,26 @@
 'use client'
+import { useState, useEffect } from 'react'
 import type { Trade } from '@/types'
 import { fmtDt, fmtDuration } from '@/lib/parser'
+
+function useTradeNote(tradeId: string) {
+  const key = `wme-note-${tradeId}`
+  const [note, setNote] = useState('')
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    setNote(localStorage.getItem(key) ?? '')
+  }, [key])
+
+  const save = (val: string) => {
+    setNote(val)
+    localStorage.setItem(key, val)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 1500)
+  }
+
+  return { note, save, saved }
+}
 
 interface Props {
   trade: Trade
@@ -50,6 +70,7 @@ function WavePill({ wave, state }: { wave: string; state: string }) {
 
 export default function TradeModal({ trade: t, onClose }: Props) {
   const win = t['Net PnL'] > 0
+  const { note, save, saved } = useTradeNote(t.id)
 
   return (
     <>
@@ -220,6 +241,32 @@ export default function TradeModal({ trade: t, onClose }: Props) {
                   </div>
                 ))}
               </div>
+            </Section>
+
+            <Section title="Notes">
+              <textarea
+                value={note}
+                onChange={e => save(e.target.value)}
+                placeholder="Add notes about this trade — what you saw, what you did well, what to improve..."
+                style={{
+                  width: '100%', minHeight: 90,
+                  background: 'var(--bg2)',
+                  border: '1px solid var(--border2)',
+                  borderRadius: 7,
+                  padding: '8px 10px',
+                  fontSize: 11,
+                  color: 'var(--t1)',
+                  resize: 'vertical',
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                  lineHeight: 1.5,
+                }}
+              />
+              {saved && (
+                <div style={{ fontSize: 9, color: 'var(--green)', marginTop: 4, textAlign: 'right' }}>
+                  Saved
+                </div>
+              )}
             </Section>
           </div>
         </div>

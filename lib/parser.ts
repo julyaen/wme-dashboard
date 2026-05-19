@@ -370,6 +370,68 @@ export function computeStats(trades: Trade[]): DashboardStats {
     }
   })
 
+  // ── Risk metrics ──────────────────────────────────────────────────────────
+  const dailyReturns = dailyPnL.map(d => d.netPnL)
+  const nDays = dailyReturns.length
+  const avgDailyReturn = nDays > 0 ? sum(dailyReturns) / nDays : 0
+
+  const stdDevDaily = nDays > 1
+    ? parseFloat(Math.sqrt(
+        dailyReturns.reduce((acc, r) => acc + Math.pow(r - avgDailyReturn, 2), 0) / (nDays - 1)
+      ).toFixed(2))
+    : 0
+
+  // Downside deviation: sqrt(mean of min(r, 0)^2) across all trading days
+  const downsideDev = nDays > 0
+    ? Math.sqrt(dailyReturns.reduce((acc, r) => acc + Math.pow(Math.min(r, 0), 2), 0) / nDays)
+    : 0
+
+  const sharpe   = stdDevDaily > 0
+    ? parseFloat(((avgDailyReturn / stdDevDaily) * Math.sqrt(252)).toFixed(2))
+    : 0
+  const sortino  = downsideDev > 0
+    ? parseFloat(((avgDailyReturn / downsideDev) * Math.sqrt(252)).toFixed(2))
+    : 0
+
+  // Calmar = annualised net PnL / |max drawdown|
+  const annualisedReturn = nDays > 0 ? netPnL * (252 / nDays) : 0
+  const calmar = maxDrawdown < 0
+    ? parseFloat((annualisedReturn / Math.abs(maxDrawdown)).toFixed(2))
+    : 0
+
+  // Recovery factor = net PnL / |max drawdown|
+  const recoveryFactor = maxDrawdown < 0
+    ? parseFloat((netPnL / Math.abs(maxDrawdown)).toFixed(2))
+    : 0
+
+  // MFE capture = avg(net PnL / MFE) for trades where MFE > 0
+  const tradesWithMFE = trades.filter(t => t['Max Open Profit (C)'] > 0)
+  const avgMFECapture = tradesWithMFE.length > 0
+    ? parseFloat(
+        (tradesWithMFE.reduce((acc, t) => acc + t['Net PnL'] / t['Max Open Profit (C)'], 0)
+          / tradesWithMFE.length * 100).toFixed(1)
+      )
+    : 0
+
+  // ── Session stats (AM = before 12:00, PM = 12:00+) ────────────────────────
+  const amTrades = trades.filter(t => new Date(t['Entry DateTime']).getHours() < 12)
+  const pmTrades = trades.filter(t => new Date(t['Entry DateTime']).getHours() >= 12)
+
+  function mkSession(label: string, ts: typeof trades) {
+    const w   = ts.filter(t => t['Net PnL'] > 0).length
+    const net = parseFloat(sum(ts.map(t => t['Net PnL'])).toFixed(2))
+    return {
+      session: label,
+      trades:  ts.length,
+      wins:    w,
+      netPnL:  net,
+      winRate: ts.length ? parseFloat((w / ts.length * 100).toFixed(1)) : 0,
+      avgPnL:  ts.length ? parseFloat((net / ts.length).toFixed(2)) : 0,
+    }
+  }
+
+  const sessionStats = [mkSession('AM', amTrades), mkSession('PM', pmTrades)]
+
   return {
     totalTrades: trades.length,
     winners: winners.length,
@@ -405,6 +467,14 @@ export function computeStats(trades: Trade[]): DashboardStats {
     maxRunup,
     rollingExpectancy,
     weekdayStats,
+    sharpe,
+    sortino,
+    calmar,
+    recoveryFactor,
+    avgDailyReturn: parseFloat(avgDailyReturn.toFixed(2)),
+    stdDevDaily,
+    avgMFECapture,
+    sessionStats,
   }
 }
 
