@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useStore } from '@/lib/store'
-import { EquityCurve, DailyBar } from '@/components/Charts'
+import { EquityCurve, DailyBar, HourHeatmap } from '@/components/Charts'
 import { fmtDt, fmtDuration } from '@/lib/parser'
 import type { Trade } from '@/types'
 import Link from 'next/link'
@@ -73,37 +73,41 @@ export default function DashboardPage() {
         {/* Weekly PnL */}
         <div className="card">
           <div className="card-title">Weekly PnL</div>
-          {s.weeklyPnL.length === 0
-            ? <div style={{ color: 'var(--t3)', fontSize: 11 }}>—</div>
-            : s.weeklyPnL.map(w => (
-              <div key={w.week} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--border)' }}>
-                <span style={{ fontSize: 10, color: 'var(--t2)' }}>{w.week}</span>
-                <span style={{ fontSize: 10, color: 'var(--t3)' }}>{w.trades}T · {w.winRate}%</span>
-                <span style={{ fontSize: 11, fontWeight: 500, fontFamily: 'monospace' }} className={w.netPnL >= 0 ? 'pos' : 'neg'}>
-                  {w.netPnL >= 0 ? '+' : ''}${w.netPnL.toFixed(0)}
-                </span>
-              </div>
-            ))
-          }
+          <div style={{ overflowY: 'auto', maxHeight: 280 }}>
+            {s.weeklyPnL.length === 0
+              ? <div style={{ color: 'var(--t3)', fontSize: 11 }}>—</div>
+              : s.weeklyPnL.map(w => (
+                <div key={w.week} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: 10, color: 'var(--t2)' }}>{w.week}</span>
+                  <span style={{ fontSize: 10, color: 'var(--t3)' }}>{w.trades}T · {w.winRate}%</span>
+                  <span style={{ fontSize: 11, fontWeight: 500, fontFamily: 'monospace' }} className={w.netPnL >= 0 ? 'pos' : 'neg'}>
+                    {w.netPnL >= 0 ? '+' : ''}${w.netPnL.toFixed(0)}
+                  </span>
+                </div>
+              ))
+            }
+          </div>
         </div>
 
         {/* Monthly PnL */}
         <div className="card">
           <div className="card-title">Monthly PnL</div>
-          {s.monthlyPnL.length === 0
-            ? <div style={{ color: 'var(--t3)', fontSize: 11 }}>—</div>
-            : s.monthlyPnL.map(m => (
-              <div key={m.month} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--border)' }}>
-                <span style={{ fontSize: 10, color: 'var(--t2)' }}>
-                  {new Date(m.month + '-01').toLocaleString('en-US', { month: 'short', year: '2-digit' })}
-                </span>
-                <span style={{ fontSize: 10, color: 'var(--t3)' }}>{m.trades}T · {m.winRate}%</span>
-                <span style={{ fontSize: 11, fontWeight: 500, fontFamily: 'monospace' }} className={m.netPnL >= 0 ? 'pos' : 'neg'}>
-                  {m.netPnL >= 0 ? '+' : ''}${m.netPnL.toFixed(0)}
-                </span>
-              </div>
-            ))
-          }
+          <div style={{ overflowY: 'auto', maxHeight: 280 }}>
+            {s.monthlyPnL.length === 0
+              ? <div style={{ color: 'var(--t3)', fontSize: 11 }}>—</div>
+              : s.monthlyPnL.map(m => (
+                <div key={m.month} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: 10, color: 'var(--t2)' }}>
+                    {new Date(m.month + '-01').toLocaleString('en-US', { month: 'short', year: '2-digit' })}
+                  </span>
+                  <span style={{ fontSize: 10, color: 'var(--t3)' }}>{m.trades}T · {m.winRate}%</span>
+                  <span style={{ fontSize: 11, fontWeight: 500, fontFamily: 'monospace' }} className={m.netPnL >= 0 ? 'pos' : 'neg'}>
+                    {m.netPnL >= 0 ? '+' : ''}${m.netPnL.toFixed(0)}
+                  </span>
+                </div>
+              ))
+            }
+          </div>
         </div>
 
         {/* Streaks + Long/Short */}
@@ -208,7 +212,73 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* ── Row 4: Equity + Trade log + Context ──────────────────────────── */}
+      {/* ── Row 4: Session Performance + Hour Heatmap ───────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}>
+
+        {/* AM vs PM */}
+        <div className="card">
+          <div className="card-title">Session performance — AM vs PM</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {s.sessionStats.map(sess => {
+              const c      = sess.session === 'AM' ? 'var(--blue)' : 'var(--purple)'
+              const dim    = sess.session === 'AM' ? 'rgba(59,130,246,0.06)' : 'rgba(167,139,250,0.06)'
+              const border = sess.session === 'AM' ? 'rgba(59,130,246,0.18)' : 'rgba(167,139,250,0.18)'
+              return (
+                <div key={sess.session} style={{ background: dim, border: `1px solid ${border}`, borderRadius: 7, padding: '10px 12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: c }}>{sess.session} Session</span>
+                    <span style={{ fontSize: 9, color: 'var(--t3)' }}>{sess.session === 'AM' ? 'before 12:00' : '≥12:00'}</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+                    {[
+                      { k: 'Trades',   v: String(sess.trades),                                              vc: 'var(--t1)' },
+                      { k: 'Win rate', v: `${sess.winRate}%`,                                               vc: sess.winRate >= 50 ? 'var(--green)' : 'var(--red)' },
+                      { k: 'Net PnL',  v: `${sess.netPnL >= 0 ? '+' : ''}$${sess.netPnL.toFixed(0)}`,      vc: sess.netPnL >= 0 ? 'var(--green)' : 'var(--red)' },
+                      { k: 'Avg PnL',  v: `${sess.avgPnL >= 0 ? '+' : ''}$${sess.avgPnL.toFixed(2)}`,      vc: sess.avgPnL >= 0 ? 'var(--green)' : 'var(--red)' },
+                    ].map(m => (
+                      <div key={m.k} style={{ background: 'var(--bg2)', borderRadius: 5, padding: '5px 7px' }}>
+                        <div style={{ fontSize: 8, color: 'var(--t3)', marginBottom: 2, textTransform: 'uppercase', letterSpacing: '.4px' }}>{m.k}</div>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: m.vc }}>{m.v}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ height: 3, background: 'var(--bg3)', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${sess.winRate}%`, background: c, borderRadius: 2 }} />
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          {s.sessionStats[0] && s.sessionStats[1] && (s.sessionStats[0].trades + s.sessionStats[1].trades) > 0 && (
+            <div style={{ marginTop: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--t3)', marginBottom: 4 }}>
+                <span>AM {s.sessionStats[0].trades}T</span>
+                <span>PM {s.sessionStats[1].trades}T</span>
+              </div>
+              <div style={{ height: 4, background: 'var(--bg3)', borderRadius: 3, overflow: 'hidden', display: 'flex' }}>
+                <div style={{ height: '100%', width: `${(s.sessionStats[0].trades / (s.sessionStats[0].trades + s.sessionStats[1].trades)) * 100}%`, background: 'var(--blue)', borderRadius: '3px 0 0 3px' }} />
+                <div style={{ height: '100%', flex: 1, background: 'var(--purple)', borderRadius: '0 3px 3px 0' }} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Hour heatmap */}
+        <div className="card">
+          <div className="card-title">
+            Hour heatmap
+            <span style={{ marginLeft: 'auto', fontWeight: 400, color: 'var(--t3)' }}>brightness = volume · color = win rate</span>
+          </div>
+          <HourHeatmap data={s.timeBuckets.filter(b => b.trades > 0).map(b => ({
+            bucket: b.bucket, winRate: b.winRate, trades: b.trades, netPnL: b.netPnL,
+          }))} />
+        </div>
+
+      </div>
+
+      {/* ── Row 5: Equity + Trade log + Context ──────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 10 }}>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -278,11 +348,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Market context panel */}
-        <div className="card" style={{ overflowY: 'auto' }}>
-          <div className="card-title">
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', maxHeight: 687 }}>
+          <div className="card-title" style={{ flexShrink: 0 }}>
             Market context at entry
             {t && <span style={{ marginLeft: 'auto', color: 'var(--t3)', fontWeight: 400, textTransform: 'none', fontSize: 10 }}>{t.Setup}</span>}
           </div>
+          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
 
           {!t ? (
             <div style={{ textAlign: 'center', color: 'var(--t3)', fontSize: 11, paddingTop: 40 }}>
@@ -427,6 +498,7 @@ export default function DashboardPage() {
 
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>

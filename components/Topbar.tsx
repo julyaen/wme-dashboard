@@ -14,19 +14,8 @@ const PAGE_LABELS: Record<string, string> = {
   '/settings':  'Settings',
 }
 
-function ActiveBadge({ label }: { label: string }) {
-  return (
-    <span style={{
-      fontSize: 9, padding: '2px 6px', borderRadius: 3,
-      background: 'rgba(59,130,246,0.15)',
-      border: '1px solid rgba(59,130,246,0.25)',
-      color: 'var(--blue)',
-    }}>{label}</span>
-  )
-}
-
 export default function Topbar() {
-  const { filterOpen, setFilterOpen, activeFilterCount, activeFilters, filteredTrades, trades, fileName, scope, isFiltered } = useStore()
+  const { filterOpen, setFilterOpen, activeFilterCount, activeFilters, filteredTrades, trades, fileName, isFiltered } = useStore()
   const path = usePathname()
   const pageLabel = PAGE_LABELS[path] ?? ''
 
@@ -70,20 +59,6 @@ export default function Topbar() {
         {pageLabel}
       </span>
 
-      {/* Active filter badges — scrollable row */}
-      {activeSummary.length > 0 && (
-        <div style={{ display: 'flex', gap: 4, overflow: 'hidden', flex: 1 }}>
-          <span style={{ fontSize: 9, color: 'var(--t3)', alignSelf: 'center', flexShrink: 0 }}>
-            {scope === 'global' ? '🌐' : '📄'}
-          </span>
-          {activeSummary.slice(0, 6).map(l => <ActiveBadge key={l} label={l} />)}
-          {activeSummary.length > 6 && (
-            <span style={{ fontSize: 9, color: 'var(--t3)', alignSelf: 'center' }}>
-              +{activeSummary.length - 6} more
-            </span>
-          )}
-        </div>
-      )}
 
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
         {/* Trade count */}

@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react'
 import type { Trade } from '@/types'
 import { fmtDt, fmtDuration } from '@/lib/parser'
 import { useScreenshot } from '@/lib/useScreenshot'
+import { useStore } from '@/lib/store'
+import { PREDEFINED_TAGS, TAG_COLOR } from '@/types/filters'
 
 function useTradeNote(tradeId: string) {
   const key = `wme-note-${tradeId}`
@@ -65,6 +67,105 @@ function WavePill({ wave, state }: { wave: string; state: string }) {
     }}>
       <div style={{ fontSize: 8, color: 'var(--t3)', marginBottom: 2 }}>{wave}</div>
       <div style={{ fontSize: 12, fontWeight: 500, color: green ? 'var(--green)' : 'var(--red)' }}>{state}</div>
+    </div>
+  )
+}
+
+const TAG_BG: Record<string, string> = {
+  'FOMO':          'rgba(239,68,68,0.12)',
+  'Revenge':       'rgba(239,68,68,0.12)',
+  'Chasing':       'rgba(239,68,68,0.12)',
+  'Impulsive':     'rgba(239,68,68,0.12)',
+  'On Tilt':       'rgba(239,68,68,0.12)',
+  'Plan Followed': 'rgba(34,197,94,0.12)',
+  'Early Exit':    'rgba(245,158,11,0.12)',
+}
+
+const PREDEFINED_SET = new Set<string>(PREDEFINED_TAGS)
+
+function TagSection({ tradeId }: { tradeId: string }) {
+  const { tagIndex, setTradeTag } = useStore()
+  const tags = tagIndex[tradeId] ?? []
+  const [input, setInput] = useState('')
+
+  const toggle = (tag: string) => {
+    const next = tags.includes(tag) ? tags.filter(t => t !== tag) : [...tags, tag]
+    setTradeTag(tradeId, next)
+  }
+
+  const addCustom = () => {
+    const trimmed = input.trim()
+    if (!trimmed || tags.includes(trimmed)) { setInput(''); return }
+    setTradeTag(tradeId, [...tags, trimmed])
+    setInput('')
+  }
+
+  const customTags = tags.filter(t => !PREDEFINED_SET.has(t))
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+      {/* Predefined behavioral chips */}
+      <div>
+        <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.4px', marginBottom: 6 }}>Behavioral</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+          {PREDEFINED_TAGS.map(tag => {
+            const active = tags.includes(tag)
+            return (
+              <button key={tag} onClick={() => toggle(tag)} style={{
+                padding: '4px 10px', fontSize: 11, borderRadius: 5,
+                border: `1px solid ${active ? TAG_COLOR[tag] : 'var(--border2)'}`,
+                background: active ? TAG_BG[tag] : 'var(--bg3)',
+                color: active ? TAG_COLOR[tag] : 'var(--t3)',
+                cursor: 'pointer', transition: 'all .1s',
+                fontWeight: active ? 500 : 400,
+              }}>{tag}</button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Custom tags */}
+      <div>
+        <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.4px', marginBottom: 6 }}>Custom</div>
+        {customTags.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 7 }}>
+            {customTags.map(tag => (
+              <span key={tag} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                padding: '3px 8px', fontSize: 11, borderRadius: 5,
+                border: '1px solid var(--blue)', background: 'rgba(59,130,246,0.12)',
+                color: 'var(--blue)',
+              }}>
+                {tag}
+                <button onClick={() => toggle(tag)} style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'var(--blue)', fontSize: 12, padding: 0, lineHeight: 1, opacity: 0.7,
+                }}>✕</button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 6 }}>
+          <input
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustom() } }}
+            placeholder="Type a tag and press Enter..."
+            style={{
+              flex: 1, background: 'var(--bg2)', border: '1px solid var(--border2)',
+              borderRadius: 6, padding: '5px 9px', fontSize: 11,
+              color: 'var(--t1)', outline: 'none', fontFamily: 'inherit',
+            }}
+          />
+          <button onClick={addCustom} style={{
+            padding: '5px 12px', fontSize: 11, borderRadius: 6,
+            border: '1px solid var(--border2)', background: 'var(--bg3)',
+            color: 'var(--t2)', cursor: 'pointer',
+          }}>Add</button>
+        </div>
+      </div>
+
     </div>
   )
 }
@@ -320,6 +421,10 @@ export default function TradeModal({ trade: t, onClose }: Props) {
                   </div>
                 ))}
               </div>
+            </Section>
+
+            <Section title="Tags">
+              <TagSection tradeId={t.id} />
             </Section>
 
             <Section title="Notes">

@@ -3,6 +3,22 @@ export type BinaryFilter = 'Both' | 'Yes' | 'No'
 export type VwapFilter   = 'Both' | 'Above' | 'Below'
 export type FilterScope  = 'global' | 'local'
 
+export const PREDEFINED_TAGS = [
+  'FOMO', 'Revenge', 'Chasing', 'Impulsive', 'On Tilt', 'Plan Followed', 'Early Exit',
+] as const
+
+export type PredefinedTag = typeof PREDEFINED_TAGS[number]
+
+export const TAG_COLOR: Record<string, string> = {
+  'FOMO':          'var(--red)',
+  'Revenge':       'var(--red)',
+  'Chasing':       'var(--red)',
+  'Impulsive':     'var(--red)',
+  'On Tilt':       'var(--red)',
+  'Plan Followed': 'var(--green)',
+  'Early Exit':    'var(--amber)',
+}
+
 export interface FilterRanges {
   deltaMin: number;    deltaMax: number
   e8kMin: number;      e8kMax: number
@@ -48,6 +64,9 @@ export interface FilterState {
 
   // Group 5 — Time
   timeBuckets: string[]
+
+  // Group 6 — Behavioral tags
+  activeTags: string[]
 }
 
 export const DEFAULT_FILTERS: FilterState = {
@@ -66,6 +85,7 @@ export const DEFAULT_FILTERS: FilterState = {
   bearDSSMin: 0,     bearDSSMax: 100,
   wcl2k2mMin: -200,  wcl2k2mMax: 200,
   timeBuckets: [],
+  activeTags: [],
 }
 
 export function isDefaultFilters(f: FilterState, ranges: FilterRanges): boolean {
@@ -86,6 +106,7 @@ export function isDefaultFilters(f: FilterState, ranges: FilterRanges): boolean 
     f.bullDSSMin === ranges.bullMin && f.bullDSSMax === ranges.bullMax &&
     f.bearDSSMin === ranges.bearMin && f.bearDSSMax === ranges.bearMax &&
     f.wcl2k2mMin === ranges.wcl2k2mMin && f.wcl2k2mMax === ranges.wcl2k2mMax &&
-    f.timeBuckets.length === 0
+    f.timeBuckets.length === 0 &&
+    f.activeTags.length === 0
   )
 }

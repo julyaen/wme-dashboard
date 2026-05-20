@@ -2,6 +2,7 @@
 import { useMemo } from 'react'
 import { useStore } from '@/lib/store'
 import type { FilterState, WaveFilter, VwapFilter } from '@/types/filters'
+import { PREDEFINED_TAGS, TAG_COLOR } from '@/types/filters'
 
 function GroupLabel({ num, children }: { num: string; children: React.ReactNode }) {
   return (
@@ -198,6 +199,7 @@ export default function FilterPanel() {
     localFilters, setLocalFilters,
     resetGlobalFilters, resetLocalFilters,
     activeFilterCount, filteredTrades, ranges,
+    tagIndex,
   } = useStore()
 
   const filters    = scope === 'global' ? globalFilters : localFilters
@@ -215,6 +217,7 @@ export default function FilterPanel() {
 
   const toggleSetup  = (s: string) => set('setups', filters.setups.includes(s) ? filters.setups.filter(x => x !== s) : [...filters.setups, s])
   const toggleBucket = (b: string) => set('timeBuckets', filters.timeBuckets.includes(b) ? filters.timeBuckets.filter(x => x !== b) : [...filters.timeBuckets, b])
+  const toggleTag    = (tag: string) => set('activeTags', filters.activeTags.includes(tag) ? filters.activeTags.filter(x => x !== tag) : [...filters.activeTags, tag])
 
   if (!filterOpen) return null
 
@@ -385,6 +388,66 @@ export default function FilterPanel() {
             })}
           </div>
         </Row>
+
+        {/* ⑥ Behavioral tags */}
+        <GroupLabel num="⑥">Tags</GroupLabel>
+        <Row>
+          <RowLabel>Behavioral <span style={{ color: 'var(--t3)' }}>(empty = all)</span></RowLabel>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {PREDEFINED_TAGS.map(tag => {
+              const active     = filters.activeTags.includes(tag)
+              const color      = TAG_COLOR[tag]
+              const count      = Object.values(tagIndex).filter(ts => ts.includes(tag)).length
+              const isPositive = tag === 'Plan Followed'
+              const isNeutral  = tag === 'Early Exit'
+              const activeBg   = isPositive ? 'rgba(34,197,94,0.15)' : isNeutral ? 'rgba(245,158,11,0.15)' : 'rgba(239,68,68,0.15)'
+              return (
+                <button key={tag} onClick={() => toggleTag(tag)} style={{
+                  padding: '4px 9px', fontSize: 10, borderRadius: 5,
+                  border: '1px solid',
+                  borderColor: active ? color : 'var(--border)',
+                  background: active ? activeBg : 'var(--bg3)',
+                  color: active ? color : 'var(--t3)',
+                  cursor: 'pointer', transition: 'all .1s',
+                  fontWeight: active ? 500 : 400,
+                }}>
+                  {tag}{count > 0 && <span style={{ fontSize: 8, opacity: 0.6, marginLeft: 4 }}>({count})</span>}
+                </button>
+              )
+            })}
+          </div>
+        </Row>
+        {(() => {
+          const predefinedSet = new Set<string>(PREDEFINED_TAGS)
+          const customInUse = Array.from(new Set(
+            Object.values(tagIndex).flat().filter(t => !predefinedSet.has(t))
+          )).sort()
+          if (customInUse.length === 0) return null
+          return (
+            <Row>
+              <RowLabel>Custom</RowLabel>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                {customInUse.map(tag => {
+                  const active = filters.activeTags.includes(tag)
+                  const count  = Object.values(tagIndex).filter(ts => ts.includes(tag)).length
+                  return (
+                    <button key={tag} onClick={() => toggleTag(tag)} style={{
+                      padding: '4px 9px', fontSize: 10, borderRadius: 5,
+                      border: '1px solid',
+                      borderColor: active ? 'var(--blue)' : 'var(--border)',
+                      background: active ? 'rgba(59,130,246,0.15)' : 'var(--bg3)',
+                      color: active ? 'var(--blue)' : 'var(--t3)',
+                      cursor: 'pointer', transition: 'all .1s',
+                      fontWeight: active ? 500 : 400,
+                    }}>
+                      {tag}{count > 0 && <span style={{ fontSize: 8, opacity: 0.6, marginLeft: 4 }}>({count})</span>}
+                    </button>
+                  )
+                })}
+              </div>
+            </Row>
+          )
+        })()}
 
         {/* Active summary */}
         {activeFilterCount > 0 && (

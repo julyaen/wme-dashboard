@@ -6,12 +6,13 @@ import type { Trade } from '@/types'
 import Link from 'next/link'
 import TradeModal from '@/components/TradeModal'
 import { useScreenshotIndex } from '@/lib/useScreenshot'
+import { TAG_COLOR } from '@/types/filters'
 
 type SortKey = keyof Trade | 'none'
 const PAGE_SIZE = 50
 
 export default function JournalPage() {
-  const { filteredTrades: trades, trades: allTrades } = useStore()
+  const { filteredTrades: trades, trades: allTrades, tagIndex } = useStore()
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<'All'|'Long'|'Short'>('All')
   const [setupFilter, setSetupFilter] = useState('All')
@@ -232,6 +233,19 @@ export default function JournalPage() {
                             ))}
                           </div>
                         </div>
+                        {(tagIndex[tr.id] ?? []).length > 0 && (
+                          <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.4px' }}>Tags</span>
+                            {(tagIndex[tr.id] ?? []).map(tag => (
+                              <span key={tag} style={{
+                                fontSize: 9, padding: '2px 7px', borderRadius: 4,
+                                border: `1px solid ${TAG_COLOR[tag] ?? 'var(--border)'}`,
+                                color: TAG_COLOR[tag] ?? 'var(--t2)',
+                                background: 'var(--bg3)',
+                              }}>{tag}</span>
+                            ))}
+                          </div>
+                        )}
                       </td>
                     </tr>
                   )}

@@ -1,5 +1,5 @@
 'use client'
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react'
 import type { Trade, DashboardStats } from '@/types'
 import type { FilterState, FilterScope, FilterRanges } from '@/types/filters'
 import { DEFAULT_FILTERS, isDefaultFilters } from '@/types/filters'
@@ -55,6 +55,8 @@ interface StoreState {
   activeFilters: FilterState
   activeFilterCount: number
   isFiltered: boolean
+  tagIndex: Record<string, string[]>
+  setTradeTag: (tradeId: string, tags: string[]) => void
 }
 
 const StoreCtx = createContext<StoreState | null>(null)
@@ -69,6 +71,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [globalFilters, setGlobalFilters] = useState<FilterState>(DEFAULT_FILTERS)
   const [localFilters,  setLocalFilters]  = useState<FilterState>(DEFAULT_FILTERS)
   const [filterOpen, setFilterOpen]       = useState(false)
+  const [tagIndex,   setTagIndex]         = useState<Record<string, string[]>>({})
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('wme_tags')
+      if (stored) setTagIndex(JSON.parse(stored))
+    } catch {}
+  }, [])
+
+  const setTradeTag = useCallback((tradeId: string, tags: string[]) => {
+    setTagIndex(prev => {
+      const next = { ...prev }
+      if (tags.length === 0) delete next[tradeId]
+      else next[tradeId] = tags
+      localStorage.setItem('wme_tags', JSON.stringify(next))
+      return next
+    })
+  }, [])
 
   const setScope = useCallback((s: FilterScope) => {
     setScope_(s)
@@ -131,10 +151,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const activeFilters = scope === 'global' ? globalFilters : localFilters
 
-  const filteredTrades = useMemo(
-    () => applyFilters(trades, activeFilters),
-    [trades, activeFilters]
-  )
+  const filteredTrades = useMemo(() => {
+    const base = applyFilters(trades, activeFilters)
+    if (activeFilters.activeTags.length === 0) return base
+    return base.filter(t => {
+      const tradeTags = tagIndex[t.id] ?? []
+      return activeFilters.activeTags.some(tag => tradeTags.includes(tag))
+    })
+  }, [trades, activeFilters, tagIndex])
 
   const stats = useMemo(
     () => filteredTrades.length > 0 ? computeStats(filteredTrades) : null,
@@ -163,6 +187,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         f.bearDSSMin !== r.bearMin   || f.bearDSSMax !== r.bearMax   ||
         f.wcl2k2mMin !== r.wcl2k2mMin || f.wcl2k2mMax !== r.wcl2k2mMax) n++
     if (f.timeBuckets.length > 0) n++
+    if (f.activeTags.length > 0) n++
     return n
   }, [activeFilters, ranges])
 
@@ -179,6 +204,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       filterOpen, setFilterOpen,
       filteredTrades, stats, activeFilters,
       activeFilterCount, isFiltered,
+      tagIndex, setTradeTag,
     }}>
       {children}
     </StoreCtx.Provider>
