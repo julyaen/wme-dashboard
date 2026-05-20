@@ -118,8 +118,8 @@ function RangeSlider({ label, min, max, valMin, valMax, step = 1, fmt, onChange 
   )
 }
 
-function ImbalanceSlider({ label, value, min, max, step = 50, onChange }: {
-  label: string; value: number; min: number; max: number; step?: number; onChange: (v: number) => void
+function ImbalanceSlider({ label, value, min, max, step = 50, suffix = '', onChange }: {
+  label: string; value: number; min: number; max: number; step?: number; suffix?: string; onChange: (v: number) => void
 }) {
   const [local, setLocal] = useState(value)
   useEffect(() => { setLocal(value) }, [value])
@@ -180,8 +180,8 @@ function ImbalanceSlider({ label, value, min, max, step = 50, onChange }: {
       </div>
       <div style={{ fontSize: 10, textAlign: 'center', fontFamily: 'monospace', color: isCenter ? 'var(--t3)' : isAsk ? 'var(--green)' : 'var(--red)' }}>
         {isCenter ? 'No filter — all trades' : isAsk
-          ? `ASK dominant ≥ ${Math.abs(local)}`
-          : `BID dominant ≥ ${Math.abs(local)}`}
+          ? `ASK dominant ≥ ${Math.abs(local)}${suffix}`
+          : `BID dominant ≥ ${Math.abs(local)}${suffix}`}
       </div>
     </Row>
   )
@@ -347,6 +347,7 @@ export default function FilterPanel() {
             value={filters.dwImbalance}
             min={ranges.dwImbalanceMin} max={ranges.dwImbalanceMax}
             step={1}
+            suffix="%"
             onChange={v => set('dwImbalance', v)}
           />
         </div>
