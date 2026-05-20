@@ -2,6 +2,7 @@
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis,
   Tooltip, ResponsiveContainer, Cell, ReferenceLine,
+  ComposedChart,
 } from 'recharts'
 
 const GRID_COLOR = 'rgba(255,255,255,0.04)'
@@ -273,6 +274,40 @@ export function MonteCarloChart({ data }: MonteCarloChartProps) {
         <Line type="monotone" dataKey="p25" stroke="rgba(59,130,246,0.45)" strokeWidth={1} dot={false} name="25th pct" />
         <Line type="monotone" dataKey="p5"  stroke="rgba(239,68,68,0.55)" strokeWidth={1} dot={false} strokeDasharray="5 2" name="5th pct" />
       </LineChart>
+    </ResponsiveContainer>
+  )
+}
+
+// ── Delta Skew Chart ──────────────────────────────────────────────────────────
+interface DeltaSkewPoint { trade: number; delta: number; avg: number; win: boolean }
+
+export function DeltaSkewChart({ data }: { data: DeltaSkewPoint[] }) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <ComposedChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} barCategoryGap="1%">
+        <XAxis dataKey="trade" tick={{ fill: TICK_COLOR, fontSize: 9 }}
+          axisLine={false} tickLine={false}
+          label={{ value: 'trade #', fill: TICK_COLOR, fontSize: 8, position: 'insideBottomRight', offset: -4 }} />
+        <YAxis tick={{ fill: TICK_COLOR, fontSize: 9 }}
+          axisLine={false} tickLine={false}
+          tickFormatter={v => `${v}%`} width={36} />
+        <ReferenceLine y={0} stroke="rgba(255,255,255,0.12)" />
+        <Tooltip
+          contentStyle={{ background: '#181c23', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, fontSize: 11 }}
+          formatter={(v: number, name: string) => [
+            name === 'delta' ? `${v}%` : `${v}% (20T avg)`,
+            name === 'delta' ? 'Delta%' : 'Rolling avg',
+          ]}
+          labelFormatter={(l: number) => `Trade #${l}`}
+        />
+        <Bar dataKey="delta" maxBarSize={8}>
+          {data.map((d, i) => (
+            <Cell key={i} fill={d.win ? '#22c55e' : '#ef4444'} fillOpacity={0.55} />
+          ))}
+        </Bar>
+        <Line type="monotone" dataKey="avg" stroke="#f59e0b" strokeWidth={1.5}
+          dot={false} name="avg" />
+      </ComposedChart>
     </ResponsiveContainer>
   )
 }

@@ -5,6 +5,7 @@ import {
   WinRateBar, DailyBar, DrawdownChart,
   RollingExpChart, WeekdayBar, MFEMAEScatter,
   HourHeatmap, StreakChart, MonteCarloChart, HistogramChart,
+  DeltaSkewChart,
 } from '@/components/Charts'
 import type { HistBin } from '@/components/Charts'
 import Link from 'next/link'
@@ -58,6 +59,21 @@ export default function AnalyticsPage() {
       bestCase:   qf(0.95),
       profitProb: parseFloat((finals.filter(f => f > 0).length / N_SIMS * 100).toFixed(1)),
     }
+  }, [trades])
+
+  // Delta skew — per-trade Delta% with 20-trade rolling average
+  const deltaSkewData = useMemo(() => {
+    const WINDOW = 20
+    return trades.map((t, i) => {
+      const slice = trades.slice(Math.max(0, i - WINDOW + 1), i + 1)
+      const avg = slice.reduce((s, tr) => s + tr.market['Delta%'] * 100, 0) / slice.length
+      return {
+        trade: i + 1,
+        delta: parseFloat((t.market['Delta%'] * 100).toFixed(1)),
+        avg: parseFloat(avg.toFixed(1)),
+        win: t['Net PnL'] > 0,
+      }
+    })
   }, [trades])
 
   // MFE/MAE scatter data
@@ -127,7 +143,7 @@ export default function AnalyticsPage() {
     <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
 
       {/* Summary row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 7 }}>
+      <div className="g6">
         {[
           { label: 'Win rate',      val: `${s.winRate}%`,                   cls: s.winRate >= 55 ? 'pos' : 'neg' },
           { label: 'Net PnL',       val: `$${s.netPnL.toFixed(2)}`,         cls: s.netPnL >= 0 ? 'pos' : 'neg' },
@@ -144,7 +160,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Risk metrics row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 7 }}>
+      <div className="g6">
         {[
           {
             label: 'Sharpe ratio',
@@ -192,7 +208,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Equity + Drawdown */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      <div className="g2">
         <div className="card">
           <div className="card-title">
             Drawdown analysis
@@ -220,7 +236,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Setup + Time bucket */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      <div className="g2">
         <div className="card">
           <div className="card-title">Setup performance</div>
           {s.setupStats.map(ss => (
@@ -283,7 +299,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Wave + E8 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+      <div className="g3">
         <div className="card">
           <div className="card-title">Wave alignment vs win rate</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -344,7 +360,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Weekday + Streaks */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      <div className="g2">
         <div className="card">
           <div className="card-title">Performance by weekday</div>
           <div style={{ height: 150 }}>
@@ -378,7 +394,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* MFE/MAE Scatter + Daily PnL */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      <div className="g2">
         <div className="card">
           <div className="card-title">
             MFE vs MAE scatter
@@ -404,8 +420,26 @@ export default function AnalyticsPage() {
       </div>
 
 
+      {/* Delta skew chart */}
+      <div className="card">
+        <div className="card-title">
+          Delta% at entry — trade by trade
+          <span style={{ marginLeft: 'auto', fontWeight: 400, color: 'var(--t3)' }}>
+            green = winner · red = loser · amber = 20-trade rolling avg
+          </span>
+        </div>
+        <div style={{ height: 160 }}>
+          <DeltaSkewChart data={deltaSkewData} />
+        </div>
+        <div className="insight" style={{ marginTop: 8 }}>
+          <strong style={{ color: 'var(--amber)' }}>Reading: </strong>
+          Amber line drifting positive = you tend to enter on ASK pressure. Negative = BID pressure.
+          Green bars above zero = winning entries with positive delta. Look for clusters of green in a consistent zone.
+        </div>
+      </div>
+
       {/* Distribution histograms */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+      <div className="g3">
         <div className="card">
           <div className="card-title">
             PnL distribution
@@ -456,7 +490,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Long vs Short deep dive */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      <div className="g2">
         {[
           { label: 'Long trades',  d: s.longStats,  c: 'var(--green)', dim: 'rgba(34,197,94,0.06)',  border: 'rgba(34,197,94,0.15)' },
           { label: 'Short trades', d: s.shortStats, c: 'var(--red)',   dim: 'rgba(239,68,68,0.06)',  border: 'rgba(239,68,68,0.15)' },

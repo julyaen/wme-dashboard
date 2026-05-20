@@ -1,5 +1,5 @@
 'use client'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { useStore } from '@/lib/store'
 import { WinRateBar } from '@/components/Charts'
 import { fmtDt, fmtDuration } from '@/lib/parser'
@@ -17,11 +17,62 @@ function StatBox({ label, value, color }: { label: string; value: string; color?
   )
 }
 
+// Compress image to max 1200px JPEG 0.8 before storing as base64
+function compressImage(file: File): Promise<string> {
+  return new Promise(resolve => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const MAX = 1200
+      let w = img.width, h = img.height
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX }
+      if (h > MAX) { w = Math.round(w * MAX / h); h = MAX }
+      const canvas = document.createElement('canvas')
+      canvas.width = w; canvas.height = h
+      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+      URL.revokeObjectURL(url)
+      resolve(canvas.toDataURL('image/jpeg', 0.8))
+    }
+    img.src = url
+  })
+}
+
 export default function PlaybookPage() {
   const { filteredTrades: trades, trades: allTrades } = useStore()
   const { settings: rSettings } = useRSettings()
   const [selected, setSelected] = useState<string | null>(null)
   const [modalTrade, setModalTrade] = useState<Trade | null>(null)
+  const [setupNotes, setSetupNotes] = useState<Record<string, string>>({})
+  const [setupScreenshots, setSetupScreenshots] = useState<Record<string, string>>({})
+  const screenshotInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    try {
+      const n = localStorage.getItem('wme-setup-notes')
+      if (n) setSetupNotes(JSON.parse(n))
+      const s = localStorage.getItem('wme-setup-screenshots')
+      if (s) setSetupScreenshots(JSON.parse(s))
+    } catch {}
+  }, [])
+
+  function saveNote(name: string, text: string) {
+    const next = { ...setupNotes, [name]: text }
+    setSetupNotes(next)
+    localStorage.setItem('wme-setup-notes', JSON.stringify(next))
+  }
+
+  function saveScreenshot(name: string, dataUrl: string) {
+    const next = { ...setupScreenshots, [name]: dataUrl }
+    setSetupScreenshots(next)
+    localStorage.setItem('wme-setup-screenshots', JSON.stringify(next))
+  }
+
+  function removeScreenshot(name: string) {
+    const next = { ...setupScreenshots }
+    delete next[name]
+    setSetupScreenshots(next)
+    localStorage.setItem('wme-setup-screenshots', JSON.stringify(next))
+  }
 
   const setups = useMemo(() => {
     const map = new Map<string, Trade[]>()
@@ -289,6 +340,72 @@ export default function PlaybookPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+
+          {/* Setup notes */}
+          <div className="card">
+            <div className="card-title">Setup notes</div>
+            <textarea
+              value={setupNotes[activeSetup.name] ?? ''}
+              onChange={e => saveNote(activeSetup.name, e.target.value)}
+              placeholder="Describe this setup — entry triggers, ideal conditions, rules, what to avoid..."
+              style={{
+                width: '100%', minHeight: 90, background: 'var(--bg2)',
+                border: '1px solid var(--border2)', borderRadius: 6,
+                padding: '8px 10px', fontSize: 11, color: 'var(--t1)',
+                resize: 'vertical', outline: 'none', fontFamily: 'inherit',
+                lineHeight: 1.6, boxSizing: 'border-box',
+              }}
+            />
+          </div>
+
+          {/* Reference screenshot */}
+          <div className="card">
+            <div className="card-title">
+              Reference screenshot
+              {setupScreenshots[activeSetup.name] && (
+                <button
+                  onClick={() => removeScreenshot(activeSetup.name)}
+                  style={{
+                    marginLeft: 'auto', fontSize: 10, padding: '2px 8px', borderRadius: 4,
+                    border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)',
+                    color: 'var(--red)', cursor: 'pointer',
+                  }}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+            {setupScreenshots[activeSetup.name] ? (
+              <img
+                src={setupScreenshots[activeSetup.name]}
+                alt={`${activeSetup.name} reference`}
+                style={{ width: '100%', borderRadius: 6, display: 'block' }}
+              />
+            ) : (
+              <label style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'center', height: 80, borderRadius: 6,
+                border: '1px dashed var(--border2)', background: 'var(--bg2)',
+                cursor: 'pointer', gap: 5,
+              }}>
+                <span style={{ fontSize: 20, color: 'var(--t3)' }}>📷</span>
+                <span style={{ fontSize: 10, color: 'var(--t3)' }}>Upload ideal setup chart</span>
+                <input
+                  ref={screenshotInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={async e => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    const dataUrl = await compressImage(file)
+                    saveScreenshot(activeSetup.name, dataUrl)
+                    if (screenshotInputRef.current) screenshotInputRef.current.value = ''
+                  }}
+                />
+              </label>
+            )}
           </div>
 
         </div>

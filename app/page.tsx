@@ -56,7 +56,7 @@ export default function DashboardPage() {
     <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
 
       {/* ── Row 1: Core metrics ──────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8,1fr)', gap: 7 }}>
+      <div className="g8">
         <MetricCard label="Net PnL"       val={`$${s.netPnL.toFixed(2)}`}       cls={s.netPnL >= 0 ? 'pos' : 'neg'}            sub={`${trades.length} trades`} />
         <MetricCard label="Win rate"      val={`${s.winRate}%`}                  cls="neu"                                       sub={`${s.winners}W · ${s.losers}L`} />
         <MetricCard label="Avg winner"    val={`$${s.avgWinner.toFixed(2)}`}     cls="pos"                                       sub="per trade" />
@@ -68,7 +68,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Row 2: Weekly / Monthly / Streak / Long-Short ───────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 7 }}>
+      <div className="g4">
 
         {/* Weekly PnL */}
         <div className="card">
@@ -279,7 +279,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Row 5: Equity + Trade log + Context ──────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 10 }}>
+      <div className="dash-main">
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
 
