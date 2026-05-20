@@ -11,19 +11,21 @@ function sessionId(fileName: string) {
 
 export async function saveSession(fileName: string, trades: Trade[]): Promise<void> {
   if (!supabase) return
-  await supabase
+  const { error } = await supabase
     .from('sessions')
     .upsert({ id: sessionId(fileName), file_name: fileName, trades })
+  if (error) console.error('[WME] saveSession error:', error.message, error.code)
 }
 
 export async function loadLatestSession(): Promise<{ fileName: string; trades: Trade[] } | null> {
   if (!supabase) return null
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('sessions')
     .select('file_name, trades')
     .order('imported_at', { ascending: false })
     .limit(1)
     .maybeSingle()
+  if (error) console.error('[WME] loadLatestSession error:', error.message, error.code)
   if (!data) return null
   return { fileName: data.file_name, trades: data.trades as Trade[] }
 }
@@ -32,7 +34,8 @@ export async function loadLatestSession(): Promise<{ fileName: string; trades: T
 
 export async function loadAllTags(): Promise<Record<string, string[]>> {
   if (!supabase) return {}
-  const { data } = await supabase.from('trade_tags').select('trade_id, tags')
+  const { data, error } = await supabase.from('trade_tags').select('trade_id, tags')
+  if (error) console.error('[WME] loadAllTags error:', error.message, error.code)
   if (!data) return {}
   return Object.fromEntries(
     (data as { trade_id: string; tags: string[] }[]).map(r => [r.trade_id, r.tags])
