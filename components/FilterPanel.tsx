@@ -1,5 +1,5 @@
 'use client'
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '@/lib/store'
 import type { FilterState, WaveFilter, VwapFilter } from '@/types/filters'
@@ -89,20 +89,26 @@ function RangeSlider({ label, min, max, valMin, valMax, step = 1, fmt, onChange 
   fmt: (v: number) => string
   onChange: (min: number, max: number) => void
 }) {
-  const isDefault = valMin === min && valMax === max
+  const [local, setLocal] = useState<[number, number]>([valMin, valMax])
+
+  // Sync when external value resets (e.g. reset all filters)
+  useEffect(() => { setLocal([valMin, valMax]) }, [valMin, valMax])
+
+  const isDefault = local[0] === min && local[1] === max
 
   return (
     <Row>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <RowLabel>{label}</RowLabel>
         <span style={{ fontSize: 10, color: isDefault ? 'var(--t3)' : 'var(--blue)', fontFamily: 'monospace', fontWeight: 500 }}>
-          {isDefault ? 'all' : `${fmt(valMin)} → ${fmt(valMax)}`}
+          {isDefault ? 'all' : `${fmt(local[0])} → ${fmt(local[1])}`}
         </span>
       </div>
       <Slider
         min={min} max={max} step={step}
-        value={[valMin, valMax]}
-        onValueChange={([lo, hi]) => onChange(lo, hi)}
+        value={local}
+        onValueChange={setLocal}
+        onValueCommit={([lo, hi]) => onChange(lo, hi)}
         active={!isDefault}
       />
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--t3)', marginTop: 6 }}>
@@ -115,20 +121,23 @@ function RangeSlider({ label, min, max, valMin, valMax, step = 1, fmt, onChange 
 function ImbalanceSlider({ label, value, min, max, step = 50, onChange }: {
   label: string; value: number; min: number; max: number; step?: number; onChange: (v: number) => void
 }) {
+  const [local, setLocal] = useState(value)
+  useEffect(() => { setLocal(value) }, [value])
+
   const absMax  = Math.max(Math.abs(min), Math.abs(max))
   const sliderMin = -absMax
   const sliderMax =  absMax
-  const pct = ((value - sliderMin) / (sliderMax - sliderMin)) * 100
-  const isCenter = value === 0
-  const isAsk = value < 0
-  const isBid = value > 0
+  const pct = ((local - sliderMin) / (sliderMax - sliderMin)) * 100
+  const isCenter = local === 0
+  const isAsk = local < 0
+  const isBid = local > 0
 
   return (
     <Row>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
         <RowLabel>{label}</RowLabel>
         {!isCenter && (
-          <button onClick={() => onChange(0)} style={{
+          <button onClick={() => { setLocal(0); onChange(0) }} style={{
             fontSize: 9, color: 'var(--t3)', background: 'none',
             border: 'none', cursor: 'pointer', padding: 0,
           }}>reset</button>
@@ -164,14 +173,15 @@ function ImbalanceSlider({ label, value, min, max, step = 50, onChange }: {
           boxShadow: '0 1px 4px rgba(0,0,0,0.5)',
           pointerEvents: 'none', transition: 'background .15s',
         }} />
-        <input type="range" min={sliderMin} max={sliderMax} step={step} value={value}
-          onChange={e => onChange(Number(e.target.value))}
+        <input type="range" min={sliderMin} max={sliderMax} step={step} value={local}
+          onChange={e => setLocal(Number(e.target.value))}
+          onPointerUp={e => onChange(Number((e.target as HTMLInputElement).value))}
           style={{ position: 'absolute', left: 0, right: 0, width: '100%', opacity: 0, cursor: 'pointer', height: 20, margin: 0 }} />
       </div>
       <div style={{ fontSize: 10, textAlign: 'center', fontFamily: 'monospace', color: isCenter ? 'var(--t3)' : isAsk ? 'var(--green)' : 'var(--red)' }}>
         {isCenter ? 'No filter — all trades' : isAsk
-          ? `ASK dominant ≥ ${Math.abs(value)}`
-          : `BID dominant ≥ ${Math.abs(value)}`}
+          ? `ASK dominant ≥ ${Math.abs(local)}`
+          : `BID dominant ≥ ${Math.abs(local)}`}
       </div>
     </Row>
   )

@@ -7,10 +7,11 @@ interface SliderProps {
   step?: number
   value: [number, number]
   onValueChange: (value: [number, number]) => void
+  onValueCommit?: (value: [number, number]) => void
   active?: boolean
 }
 
-export function Slider({ min, max, step = 1, value, onValueChange, active = true }: SliderProps) {
+export function Slider({ min, max, step = 1, value, onValueChange, onValueCommit, active = true }: SliderProps) {
   const trackColor = active ? '#3b82f6' : '#252c3a'
   const thumbColor = active ? '#3b82f6' : '#555c6e'
 
@@ -21,6 +22,7 @@ export function Slider({ min, max, step = 1, value, onValueChange, active = true
       step={step}
       value={value}
       onValueChange={v => onValueChange(v as [number, number])}
+      onValueCommit={onValueCommit ? v => onValueCommit(v as [number, number]) : undefined}
       style={{
         position: 'relative',
         display: 'flex',
