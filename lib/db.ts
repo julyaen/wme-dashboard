@@ -75,8 +75,8 @@ function screenshotPath(setupName: string) {
 export async function uploadSetupScreenshot(
   setupName: string,
   dataUrl: string
-): Promise<string | null> {
-  if (!supabase) return null
+): Promise<{ url: string | null; error: string | null }> {
+  if (!supabase) return { url: null, error: 'Supabase not configured' }
   const [, base64] = dataUrl.split(',')
   const binary = atob(base64)
   const bytes = new Uint8Array(binary.length)
@@ -86,12 +86,15 @@ export async function uploadSetupScreenshot(
   const { error } = await supabase.storage
     .from('setup-screenshots')
     .upload(screenshotPath(setupName), blob, { upsert: true, contentType: 'image/jpeg' })
-  if (error) return null
+  if (error) {
+    console.error('[WME] Screenshot upload error:', error)
+    return { url: null, error: error.message }
+  }
 
   const { data } = supabase.storage
     .from('setup-screenshots')
     .getPublicUrl(screenshotPath(setupName))
-  return data.publicUrl
+  return { url: data.publicUrl, error: null }
 }
 
 export async function deleteSetupScreenshot(setupName: string): Promise<void> {

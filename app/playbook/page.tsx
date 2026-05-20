@@ -85,11 +85,11 @@ export default function PlaybookPage() {
   const saveScreenshot = useCallback(async (name: string, dataUrl: string) => {
     setScreenshotError(null)
     if (hasSupabase) {
-      const url = await uploadSetupScreenshot(name, dataUrl)
+      const { url, error } = await uploadSetupScreenshot(name, dataUrl)
       if (url) {
         setSetupScreenshots(prev => ({ ...prev, [name]: url }))
       } else {
-        setScreenshotError('Upload failed. Make sure the setup-screenshots bucket exists in Supabase (Storage → New bucket → name: setup-screenshots → Public: ON).')
+        setScreenshotError(`Upload failed: ${error ?? 'unknown error'}`)
       }
     } else {
       setSetupScreenshots(prev => {
