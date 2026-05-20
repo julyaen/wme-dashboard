@@ -49,6 +49,7 @@ export default function PlaybookPage() {
   const [modalTrade, setModalTrade] = useState<Trade | null>(null)
   const [setupNotes, setSetupNotes] = useState<Record<string, string>>({})
   const [setupScreenshots, setSetupScreenshots] = useState<Record<string, string>>({})
+  const [screenshotError, setScreenshotError] = useState<string | null>(null)
   const screenshotInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -82,9 +83,14 @@ export default function PlaybookPage() {
   }, [])
 
   const saveScreenshot = useCallback(async (name: string, dataUrl: string) => {
+    setScreenshotError(null)
     if (hasSupabase) {
       const url = await uploadSetupScreenshot(name, dataUrl)
-      if (url) setSetupScreenshots(prev => ({ ...prev, [name]: url }))
+      if (url) {
+        setSetupScreenshots(prev => ({ ...prev, [name]: url }))
+      } else {
+        setScreenshotError('Upload failed. Make sure the setup-screenshots bucket exists in Supabase (Storage → New bucket → name: setup-screenshots → Public: ON).')
+      }
     } else {
       setSetupScreenshots(prev => {
         const next = { ...prev, [name]: dataUrl }
@@ -159,6 +165,22 @@ export default function PlaybookPage() {
       .sort((a, b) => b.netPnL - a.netPnL)
   }, [trades, rSettings])
 
+  // When Supabase is configured, populate screenshot state with storage URLs so they
+  // survive page refresh. onError below cleans up entries where no file was uploaded yet.
+  useEffect(() => {
+    if (!hasSupabase || setups.length === 0) return
+    setSetupScreenshots(prev => {
+      const next = { ...prev }
+      for (const s of setups) {
+        if (!next[s.name]) {
+          const url = getSetupScreenshotPublicUrl(s.name)
+          if (url) next[s.name] = url
+        }
+      }
+      return next
+    })
+  }, [setups])
+
   const activeSetup = setups.find(s => s.name === selected) ?? setups[0] ?? null
 
   if (!allTrades.length) {
@@ -184,7 +206,7 @@ export default function PlaybookPage() {
         {setups.map(s => {
           const isActive = (selected ?? setups[0]?.name) === s.name
           return (
-            <div key={s.name} onClick={() => setSelected(s.name)}
+            <div key={s.name} onClick={() => { setSelected(s.name); setScreenshotError(null) }}
               style={{
                 background: isActive ? 'var(--bg3)' : 'var(--bg1)',
                 border: `1px solid ${isActive ? 'rgba(59,130,246,0.35)' : 'var(--border)'}`,
@@ -406,12 +428,28 @@ export default function PlaybookPage() {
                 </button>
               )}
             </div>
-            {(setupScreenshots[activeSetup.name] || (hasSupabase && getSetupScreenshotPublicUrl(activeSetup.name))) ? (
+            {screenshotError && (
+              <div style={{
+                marginBottom: 8, padding: '7px 10px', borderRadius: 6,
+                background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)',
+                fontSize: 11, color: 'var(--red)', lineHeight: 1.5,
+              }}>
+                {screenshotError}
+              </div>
+            )}
+            {setupScreenshots[activeSetup.name] ? (
               <img
-                src={setupScreenshots[activeSetup.name] ?? getSetupScreenshotPublicUrl(activeSetup.name) ?? ''}
+                src={setupScreenshots[activeSetup.name]}
                 alt={`${activeSetup.name} reference`}
                 style={{ width: '100%', borderRadius: 6, display: 'block' }}
-                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                onError={() => {
+                  // File not in storage — clear so upload zone reappears
+                  setSetupScreenshots(prev => {
+                    const next = { ...prev }
+                    delete next[activeSetup.name]
+                    return next
+                  })
+                }}
               />
             ) : (
               <label style={{
