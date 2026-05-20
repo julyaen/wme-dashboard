@@ -1,7 +1,8 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { Trade } from '@/types'
 import { fmtDt, fmtDuration } from '@/lib/parser'
+import { useScreenshot } from '@/lib/useScreenshot'
 
 function useTradeNote(tradeId: string) {
   const key = `wme-note-${tradeId}`
@@ -64,6 +65,84 @@ function WavePill({ wave, state }: { wave: string; state: string }) {
     }}>
       <div style={{ fontSize: 8, color: 'var(--t3)', marginBottom: 2 }}>{wave}</div>
       <div style={{ fontSize: 12, fontWeight: 500, color: green ? 'var(--green)' : 'var(--red)' }}>{state}</div>
+    </div>
+  )
+}
+
+function ScreenshotSection({ tradeId }: { tradeId: string }) {
+  const { exists, base64, mime, loading, uploading, error, upload, remove } = useScreenshot(tradeId)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [dragging, setDragging] = useState(false)
+
+  const handleFiles = (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    upload(files[0])
+  }
+
+  if (loading) {
+    return (
+      <div style={{
+        height: 60, background: 'var(--bg3)', borderRadius: 6,
+        animation: 'pulse 1.5s ease-in-out infinite',
+      }} />
+    )
+  }
+
+  if (exists && base64 && mime) {
+    return (
+      <div style={{ position: 'relative' }}>
+        <img
+          src={`data:${mime};base64,${base64}`}
+          alt="Trade screenshot"
+          style={{ width: '100%', maxHeight: 280, objectFit: 'contain', borderRadius: 6, display: 'block', background: 'var(--bg3)' }}
+        />
+        <button
+          onClick={remove}
+          disabled={uploading}
+          style={{
+            position: 'absolute', top: 6, right: 6,
+            fontSize: 10, padding: '2px 8px', borderRadius: 4,
+            border: '1px solid var(--border)', background: 'var(--bg2)',
+            color: uploading ? 'var(--t3)' : 'var(--red)',
+            cursor: uploading ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {uploading ? '…' : 'Remove'}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div
+        onClick={() => !uploading && inputRef.current?.click()}
+        onDragOver={e => { e.preventDefault(); setDragging(true) }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={e => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files) }}
+        style={{
+          border: `1px dashed ${dragging ? 'var(--blue)' : 'var(--border2)'}`,
+          borderRadius: 6, padding: '18px 12px',
+          textAlign: 'center', cursor: uploading ? 'not-allowed' : 'pointer',
+          background: dragging ? 'rgba(59,130,246,0.05)' : 'var(--bg2)',
+          transition: 'border-color 0.15s, background 0.15s',
+        }}
+      >
+        {uploading
+          ? <span style={{ fontSize: 11, color: 'var(--t3)' }}>Uploading…</span>
+          : <span style={{ fontSize: 11, color: 'var(--t3)' }}>Drop screenshot or click to upload</span>
+        }
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={e => handleFiles(e.target.files)}
+      />
+      {error && (
+        <div style={{ fontSize: 10, color: 'var(--red)', marginTop: 4 }}>{error}</div>
+      )}
     </div>
   )
 }
@@ -267,6 +346,10 @@ export default function TradeModal({ trade: t, onClose }: Props) {
                   Saved
                 </div>
               )}
+            </Section>
+
+            <Section title="Screenshot">
+              <ScreenshotSection tradeId={t.id} />
             </Section>
           </div>
         </div>

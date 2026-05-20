@@ -5,6 +5,7 @@ import { fmtDt, fmtDuration } from '@/lib/parser'
 import type { Trade } from '@/types'
 import Link from 'next/link'
 import TradeModal from '@/components/TradeModal'
+import { useScreenshotIndex } from '@/lib/useScreenshot'
 
 type SortKey = keyof Trade | 'none'
 const PAGE_SIZE = 50
@@ -21,6 +22,7 @@ export default function JournalPage() {
   const [page, setPage] = useState(1)
   const [modalTrade, setModalTrade] = useState<Trade | null>(null)
 
+  const { index: screenshotIndex } = useScreenshotIndex()
   const setups = useMemo(() => ['All', ...Array.from(new Set(allTrades.map(t => t.Setup))).sort()], [allTrades])
 
   const filtered = useMemo(() => {
@@ -121,6 +123,7 @@ export default function JournalPage() {
             <thead>
               <tr>
                 <th style={{ width: 32 }}></th>
+                <th style={{ width: 28, textAlign: 'center', color: 'var(--t3)' }}>📷</th>
                 <th style={thStyle('Note')} onClick={() => toggleSort('Note')}>Setup {sortKey === 'Note' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
                 <th style={thStyle('Trade Type')} onClick={() => toggleSort('Trade Type')}>Type</th>
                 <th style={thStyle('Entry DateTime')} onClick={() => toggleSort('Entry DateTime')}>Entry {sortKey === 'Entry DateTime' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
@@ -154,6 +157,11 @@ export default function JournalPage() {
                         background: 'var(--bg2)',
                       }} title="Open detail view">⊞</span>
                     </td>
+                    <td style={{ textAlign: 'center', padding: '4px 6px' }}>
+                      {screenshotIndex[tr.id] && (
+                        <span style={{ fontSize: 12, color: 'var(--blue)' }} title="Has screenshot">📷</span>
+                      )}
+                    </td>
                     <td style={{ color: 'var(--t1)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tr.Note}</td>
                     <td><span className={`badge ${tr['Trade Type'] === 'Long' ? 'badge-green' : 'badge-red'}`}>{tr['Trade Type'] === 'Long' ? 'Long' : 'Short'}</span></td>
                     <td style={{ fontFamily: 'monospace', fontSize: 10 }}>{fmtDt(tr['Entry DateTime'])}</td>
@@ -181,7 +189,7 @@ export default function JournalPage() {
                   </tr>
                   {expanded === tr.id && (
                     <tr>
-                      <td colSpan={17} style={{ background: 'var(--bg2)', padding: '10px 14px' }}>
+                      <td colSpan={18} style={{ background: 'var(--bg2)', padding: '10px 14px' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10, fontSize: 11 }}>
                           <div><div style={{ color: 'var(--t3)', fontSize: 9, marginBottom: 4 }}>WAVE STATES</div>
                             {(['2kWave','2mWave','30mWave','30sWave'] as const).map(w => (
