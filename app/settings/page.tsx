@@ -1,5 +1,6 @@
 'use client'
 import { useStore } from '@/lib/store'
+import { useRSettings } from '@/lib/useRSettings'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -27,6 +28,7 @@ function Field({ label, sub, children }: { label: string; sub?: string; children
 
 export default function SettingsPage() {
   const { trades, fileName, clearData } = useStore()
+  const { settings: r, update: updateR } = useRSettings()
 
   return (
     <div style={{ padding: 20, maxWidth: 600 }}>
@@ -70,6 +72,47 @@ export default function SettingsPage() {
         </Field>
         <Field label="Currency" sub="Displayed throughout the app">
           <span className="badge badge-gray">USD ($)</span>
+        </Field>
+      </Section>
+
+      <Section title="R-Multiple">
+        <Field label="Calculation mode" sub="How your risk denominator is defined">
+          <div style={{ display: 'flex', gap: 4 }}>
+            {(['points', 'dollars'] as const).map(m => (
+              <button key={m} onClick={() => updateR({ ...r, mode: m })} style={{
+                fontSize: 11, padding: '4px 12px', borderRadius: 5,
+                border: '1px solid',
+                borderColor: r.mode === m ? 'var(--blue)' : 'var(--border2)',
+                background: r.mode === m ? 'rgba(59,130,246,0.15)' : 'var(--bg3)',
+                color: r.mode === m ? 'var(--blue)' : 'var(--t3)',
+                cursor: 'pointer', fontWeight: r.mode === m ? 500 : 400,
+              }}>
+                {m === 'points' ? 'Points' : 'Dollars'}
+              </button>
+            ))}
+          </div>
+        </Field>
+        <Field
+          label={r.mode === 'points' ? 'Stop loss in points' : 'Risk per trade ($)'}
+          sub={r.mode === 'points'
+            ? `MNQ: ${r.value} pts × $2 = $${r.value * 2} per contract`
+            : `Flat dollar risk applied to every trade`}
+        >
+          <input
+            type="number" min={1} value={r.value}
+            onChange={e => updateR({ ...r, value: Math.max(1, Number(e.target.value)) })}
+            style={{
+              width: 90, background: 'var(--bg2)', border: '1px solid var(--border2)',
+              borderRadius: 5, padding: '5px 8px', fontSize: 13,
+              color: 'var(--t1)', outline: 'none', textAlign: 'right',
+              fontFamily: 'monospace',
+            }}
+          />
+        </Field>
+        <Field label="Current 1-contract risk" sub="Dollar risk for a single contract trade">
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--amber)', fontFamily: 'monospace' }}>
+            ${r.mode === 'points' ? (r.value * 2).toFixed(0) : r.value.toFixed(0)}
+          </span>
         </Field>
       </Section>
 

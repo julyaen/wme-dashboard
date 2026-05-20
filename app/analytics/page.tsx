@@ -4,7 +4,7 @@ import { useStore } from '@/lib/store'
 import {
   WinRateBar, DailyBar, DrawdownChart,
   RollingExpChart, WeekdayBar, MFEMAEScatter,
-  HourHeatmap, StreakChart,
+  HourHeatmap, StreakChart, MonteCarloChart,
 } from '@/components/Charts'
 import Link from 'next/link'
 
@@ -20,6 +20,43 @@ export default function AnalyticsPage() {
       else                       cur = 0
       return { trade: i + 1, streak: cur }
     })
+  }, [trades])
+
+  // Monte Carlo simulation — 1000 resampled equity curves
+  const monteCarlo = useMemo(() => {
+    const pnls = trades.map(t => t['Net PnL'])
+    const n = pnls.length
+    if (n < 10) return null
+    const N_SIMS = 1000
+    const simPaths: number[][] = []
+    const finals: number[] = []
+    for (let i = 0; i < N_SIMS; i++) {
+      let cum = 0
+      const path: number[] = [0]
+      for (let j = 0; j < n; j++) {
+        cum += pnls[Math.floor(Math.random() * n)]
+        path.push(cum)
+      }
+      simPaths.push(path)
+      finals.push(cum)
+    }
+    // Sample up to 100 evenly-spaced points for the chart
+    const step = Math.max(1, Math.floor(n / 100))
+    const chartData = []
+    for (let i = 0; i <= n; i += step) {
+      const vals = simPaths.map(p => p[i]).sort((a, b) => a - b)
+      const q = (pct: number) => vals[Math.max(0, Math.floor(pct * vals.length) - 1)]
+      chartData.push({ trade: i, p5: q(0.05), p25: q(0.25), p50: q(0.50), p75: q(0.75), p95: q(0.95) })
+    }
+    finals.sort((a, b) => a - b)
+    const qf = (pct: number) => finals[Math.max(0, Math.floor(pct * finals.length) - 1)]
+    return {
+      chartData,
+      median:     qf(0.50),
+      worstCase:  qf(0.05),
+      bestCase:   qf(0.95),
+      profitProb: parseFloat((finals.filter(f => f > 0).length / N_SIMS * 100).toFixed(1)),
+    }
   }, [trades])
 
   // MFE/MAE scatter data
@@ -423,6 +460,45 @@ export default function AnalyticsPage() {
           </div>
         )}
       </div>
+
+      {/* Monte Carlo simulation */}
+      {monteCarlo && (
+        <div className="card">
+          <div className="card-title">
+            Monte Carlo simulation
+            <span style={{ marginLeft: 'auto', fontWeight: 400, color: 'var(--t3)' }}>
+              1,000 resampled equity curves · {trades.length} trades
+            </span>
+          </div>
+
+          {/* Summary cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 14 }}>
+            {[
+              { label: 'Median outcome',    val: `${monteCarlo.median >= 0 ? '+' : ''}$${monteCarlo.median.toFixed(0)}`,    cls: monteCarlo.median >= 0 ? 'pos' : 'neg', sub: '50th percentile' },
+              { label: 'Worst case (5%)',   val: `${monteCarlo.worstCase >= 0 ? '+' : ''}$${monteCarlo.worstCase.toFixed(0)}`, cls: monteCarlo.worstCase >= 0 ? 'pos' : 'neg', sub: 'bottom 5% of runs' },
+              { label: 'Best case (95%)',   val: `+$${monteCarlo.bestCase.toFixed(0)}`,   cls: 'pos', sub: 'top 5% of runs' },
+              { label: 'Probability of profit', val: `${monteCarlo.profitProb}%`, cls: monteCarlo.profitProb >= 60 ? 'pos' : monteCarlo.profitProb >= 40 ? 'neu' : 'neg', sub: 'of simulations end positive' },
+            ].map(m => (
+              <div key={m.label} style={{ background: 'var(--bg2)', borderRadius: 7, padding: '10px 12px' }}>
+                <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 4 }}>{m.label}</div>
+                <div style={{ fontSize: 18, fontWeight: 500, marginBottom: 2 }} className={m.cls}>{m.val}</div>
+                <div style={{ fontSize: 9, color: 'var(--t3)' }}>{m.sub}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Fan chart */}
+          <div style={{ height: 200 }}>
+            <MonteCarloChart data={monteCarlo.chartData} />
+          </div>
+
+          <div className="insight" style={{ marginTop: 10 }}>
+            <strong style={{ color: 'var(--amber)' }}>Reading: </strong>
+            Blue solid = median path. Inner blue lines = 25th–75th percentile range. Green dashed = top 5% outcome. Red dashed = worst 5% outcome.
+            A wide fan signals high variance — your results are sensitive to trade sequence. A tight fan signals consistency.
+          </div>
+        </div>
+      )}
 
     </div>
   )

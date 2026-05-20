@@ -249,6 +249,34 @@ export function HourHeatmap({ data }: HourHeatmapProps) {
   )
 }
 
+// ── Monte Carlo Chart ─────────────────────────────────────────────────────────
+interface MCPoint { trade: number; p5: number; p25: number; p50: number; p75: number; p95: number }
+interface MonteCarloChartProps { data: MCPoint[] }
+
+export function MonteCarloChart({ data }: MonteCarloChartProps) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+        <XAxis dataKey="trade" tick={{ fill: TICK_COLOR, fontSize: 9 }}
+          axisLine={false} tickLine={false} label={{ value: 'trades', fill: TICK_COLOR, fontSize: 8, position: 'insideBottomRight', offset: -4 }} />
+        <YAxis tick={{ fill: TICK_COLOR, fontSize: 9 }}
+          axisLine={false} tickLine={false}
+          tickFormatter={v => `$${v}`} width={52} />
+        <ReferenceLine y={0} stroke="rgba(255,255,255,0.12)" strokeDasharray="3 2" />
+        <Tooltip
+          contentStyle={{ background: '#181c23', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, fontSize: 11 }}
+          formatter={(v: number, name: string) => [`$${(v as number).toFixed(0)}`, name]}
+        />
+        <Line type="monotone" dataKey="p95" stroke="rgba(34,197,94,0.5)"  strokeWidth={1} dot={false} strokeDasharray="5 2" name="95th pct" />
+        <Line type="monotone" dataKey="p75" stroke="rgba(59,130,246,0.45)" strokeWidth={1} dot={false} name="75th pct" />
+        <Line type="monotone" dataKey="p50" stroke="#3b82f6"               strokeWidth={2} dot={false} name="Median" />
+        <Line type="monotone" dataKey="p25" stroke="rgba(59,130,246,0.45)" strokeWidth={1} dot={false} name="25th pct" />
+        <Line type="monotone" dataKey="p5"  stroke="rgba(239,68,68,0.55)" strokeWidth={1} dot={false} strokeDasharray="5 2" name="5th pct" />
+      </LineChart>
+    </ResponsiveContainer>
+  )
+}
+
 // ── Streak Chart ──────────────────────────────────────────────────────────────
 interface StreakPoint { trade: number; streak: number }
 interface StreakChartProps { data: StreakPoint[] }

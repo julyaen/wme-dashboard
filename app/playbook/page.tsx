@@ -6,6 +6,7 @@ import { fmtDt, fmtDuration } from '@/lib/parser'
 import TradeModal from '@/components/TradeModal'
 import type { Trade } from '@/types'
 import Link from 'next/link'
+import { useRSettings, computeRisk } from '@/lib/useRSettings'
 
 function StatBox({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
@@ -18,6 +19,7 @@ function StatBox({ label, value, color }: { label: string; value: string; color?
 
 export default function PlaybookPage() {
   const { filteredTrades: trades, trades: allTrades } = useStore()
+  const { settings: rSettings } = useRSettings()
   const [selected, setSelected] = useState<string | null>(null)
   const [modalTrade, setModalTrade] = useState<Trade | null>(null)
 
@@ -57,16 +59,24 @@ export default function PlaybookPage() {
         // Time bucket breakdown
         const buckets = Array.from(new Set(ts.map(t => t.market['Time Bucket']))).sort()
 
+        // R-multiple using user-configured risk (points or flat dollars)
+        const avgR = parseFloat(
+          (ts.reduce((a, t) => {
+            const risk = computeRisk(t['Trade Quantity'], rSettings)
+            return a + (risk > 0 ? t['Net PnL'] / risk : 0)
+          }, 0) / ts.length).toFixed(2)
+        )
+
         return {
           name, trades: ts, count: ts.length,
           wins, losses, netPnL, avgPnL,
           avgMFE, avgMAE, avgDur, winRate, pf,
           wave2kGreen, wave2mGreen, wave30mGreen,
-          avgDelta, avgBullDSS, avgBearDSS, buckets,
+          avgDelta, avgBullDSS, avgBearDSS, buckets, avgR,
         }
       })
       .sort((a, b) => b.netPnL - a.netPnL)
-  }, [trades])
+  }, [trades, rSettings])
 
   const activeSetup = setups.find(s => s.name === selected) ?? setups[0] ?? null
 
@@ -134,7 +144,7 @@ export default function PlaybookPage() {
                 {activeSetup.netPnL >= 0 ? '+' : ''}${activeSetup.netPnL.toFixed(2)}
               </span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 6 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8,1fr)', gap: 6 }}>
               <StatBox label="Trades"      value={String(activeSetup.count)} />
               <StatBox label="Win rate"    value={`${activeSetup.winRate}%`}
                 color={activeSetup.winRate >= 55 ? 'var(--green)' : 'var(--red)'} />
@@ -142,6 +152,8 @@ export default function PlaybookPage() {
               <StatBox label="Losses"      value={String(activeSetup.losses)} color="var(--red)" />
               <StatBox label="Avg PnL"     value={`${activeSetup.avgPnL >= 0 ? '+' : ''}$${activeSetup.avgPnL.toFixed(2)}`}
                 color={activeSetup.avgPnL >= 0 ? 'var(--green)' : 'var(--red)'} />
+              <StatBox label="Avg R"       value={`${activeSetup.avgR >= 0 ? '+' : ''}${activeSetup.avgR.toFixed(2)}R`}
+                color={activeSetup.avgR >= 1 ? 'var(--green)' : activeSetup.avgR >= 0 ? 'var(--amber)' : 'var(--red)'} />
               <StatBox label="Avg MFE"     value={`+$${activeSetup.avgMFE.toFixed(1)}`} color="var(--green)" />
               <StatBox label="Avg MAE"     value={`$${activeSetup.avgMAE.toFixed(1)}`}   color="var(--red)" />
             </div>
@@ -241,7 +253,7 @@ export default function PlaybookPage() {
                   <tr>
                     <th style={{ width: 32 }}></th>
                     <th>Entry</th><th>Type</th><th>Net PnL</th>
-                    <th>MFE</th><th>MAE</th><th>2kW</th><th>Delta%</th><th>BullDSS</th>
+                    <th>R</th><th>MFE</th><th>MAE</th><th>2kW</th><th>Delta%</th><th>BullDSS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -261,6 +273,9 @@ export default function PlaybookPage() {
                       </span></td>
                       <td className={tr['Net PnL'] >= 0 ? 'pos' : 'neg'} style={{ fontWeight: 500 }}>
                         {tr['Net PnL'] >= 0 ? '+' : ''}${tr['Net PnL'].toFixed(2)}
+                      </td>
+                      <td style={{ fontFamily: 'monospace', fontSize: 10, color: (() => { const risk = computeRisk(tr['Trade Quantity'], rSettings); const r = risk > 0 ? tr['Net PnL'] / risk : 0; return r >= 1 ? 'var(--green)' : r >= 0 ? 'var(--amber)' : 'var(--red)' })() }}>
+                        {(() => { const risk = computeRisk(tr['Trade Quantity'], rSettings); const r = risk > 0 ? tr['Net PnL'] / risk : 0; return `${r >= 0 ? '+' : ''}${r.toFixed(2)}R` })()}
                       </td>
                       <td style={{ color: 'var(--green)', fontSize: 10 }}>+${tr['Max Open Profit (C)'].toFixed(1)}</td>
                       <td style={{ color: 'var(--red)', fontSize: 10 }}>${tr['Max Open Loss (C)'].toFixed(1)}</td>
