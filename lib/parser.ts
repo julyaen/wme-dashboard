@@ -530,8 +530,7 @@ export function computeRanges(trades: Trade[]): FilterRanges {
     bullMin: 0,      bullMax: 100,
     bearMin: 0,      bearMax: 100,
     rawMin: -800,    rawMax: 800,
-    dwMin: -1,       dwMax: 1,
-    rawDWMin: -1,    rawDWMax: 1,
+    dwImbalanceMin: -1, dwImbalanceMax: 1,
     wcl2k2mMin: -200, wcl2k2mMax: 200,
   }
 
@@ -541,8 +540,7 @@ export function computeRanges(trades: Trade[]): FilterRanges {
   const bulls    = trades.map(t => t.market.BullishDSS)
   const bears    = trades.map(t => t.market.BearishDSS)
   const raws     = trades.map(t => t.market['RawASK-BID'])
-  const dws      = trades.map(t => t.market['Net DWSkew'])
-  const rawDWs   = trades.map(t => t.market.DWask - t.market.DWbid)
+  const dwImbalances = trades.map(t => t.market.DWask - t.market.DWbid)
   const wcl2k2ms = trades.map(t => t.market['2kWCL vs 2mWCL'])
 
   const flr = (arr: number[]) => Math.floor(Math.min(...arr))
@@ -561,10 +559,8 @@ export function computeRanges(trades: Trade[]): FilterRanges {
     bearMax:     Math.min(100, cel(bears)),
     rawMin:      flr(raws)   - 50,
     rawMax:      cel(raws)   + 50,
-    dwMin:       Math.floor(Math.min(...dws) * 100) - 5,
-    dwMax:       Math.ceil(Math.max(...dws)  * 100) + 5,
-    rawDWMin:    Math.floor(Math.min(...rawDWs) * 100) - 5,
-    rawDWMax:    Math.ceil(Math.max(...rawDWs)  * 100) + 5,
+    dwImbalanceMin: Math.floor(Math.min(...dwImbalances) * 100) - 5,
+    dwImbalanceMax: Math.ceil(Math.max(...dwImbalances)  * 100) + 5,
     wcl2k2mMin:  flr(wcl2k2ms) - 5,
     wcl2k2mMax:  cel(wcl2k2ms) + 5,
   }

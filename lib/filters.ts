@@ -47,18 +47,11 @@ export function applyFilters(trades: Trade[], f: FilterState): Trade[] {
       if (t.market['RawASK-BID'] > -f.rawImbalance) return false
     }
 
-    // Delta Wave slider — stored as integer (Net DWSkew × 100), same direction as rawImbalance
-    if (f.dwSkew < 0) {
-      if (t.market['Net DWSkew'] * 100 < Math.abs(f.dwSkew)) return false
-    } else if (f.dwSkew > 0) {
-      if (t.market['Net DWSkew'] * 100 > -f.dwSkew) return false
-    }
-
-    // Raw Delta Wave (DWask − DWbid) × 100, same direction convention
-    if (f.rawDW < 0) {
-      if ((t.market.DWask - t.market.DWbid) * 100 < Math.abs(f.rawDW)) return false
-    } else if (f.rawDW > 0) {
-      if ((t.market.DWask - t.market.DWbid) * 100 > -f.rawDW) return false
+    // Delta Wave Imbalance (DWask − DWbid) × 100
+    if (f.dwImbalance < 0) {
+      if ((t.market.DWask - t.market.DWbid) * 100 < Math.abs(f.dwImbalance)) return false
+    } else if (f.dwImbalance > 0) {
+      if ((t.market.DWask - t.market.DWbid) * 100 > -f.dwImbalance) return false
     }
 
     // ── Group 4: Numeric ranges ────────────────────────────────────────────
