@@ -1,8 +1,10 @@
 'use client'
 import { useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '@/lib/store'
 import type { FilterState, WaveFilter, VwapFilter } from '@/types/filters'
 import { PREDEFINED_TAGS, TAG_COLOR } from '@/types/filters'
+import { Slider } from '@/components/ui/slider'
 
 function GroupLabel({ num, children }: { num: string; children: React.ReactNode }) {
   return (
@@ -88,37 +90,22 @@ function RangeSlider({ label, min, max, valMin, valMax, step = 1, fmt, onChange 
   onChange: (min: number, max: number) => void
 }) {
   const isDefault = valMin === min && valMax === max
-  const leftPct  = ((valMin - min) / (max - min)) * 100
-  const rightPct = ((valMax - min) / (max - min)) * 100
 
   return (
     <Row>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <RowLabel>{label}</RowLabel>
         <span style={{ fontSize: 10, color: isDefault ? 'var(--t3)' : 'var(--blue)', fontFamily: 'monospace', fontWeight: 500 }}>
           {isDefault ? 'all' : `${fmt(valMin)} → ${fmt(valMax)}`}
         </span>
       </div>
-      {/* Visual track */}
-      <div style={{ position: 'relative', height: 6, background: 'var(--bg3)', borderRadius: 3, margin: '6px 0 4px' }}>
-        <div style={{
-          position: 'absolute',
-          left: `${leftPct}%`, right: `${100 - rightPct}%`,
-          height: '100%', background: isDefault ? 'var(--bg4)' : 'var(--blue)',
-          borderRadius: 3, transition: 'background .2s',
-        }} />
-      </div>
-      {/* Sliders */}
-      <div style={{ position: 'relative' }}>
-        <input type="range" min={min} max={max} step={step} value={valMin}
-          onChange={e => onChange(Math.min(Number(e.target.value), valMax - step), valMax)}
-          style={{ width: '100%', accentColor: 'var(--blue)', cursor: 'pointer', display: 'block', marginBottom: 2 }} />
-        <input type="range" min={min} max={max} step={step} value={valMax}
-          onChange={e => onChange(valMin, Math.max(Number(e.target.value), valMin + step))}
-          style={{ width: '100%', accentColor: 'var(--blue)', cursor: 'pointer', display: 'block' }} />
-      </div>
-      {/* Min / Max labels */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--t3)', marginTop: 2 }}>
+      <Slider
+        min={min} max={max} step={step}
+        value={[valMin, valMax]}
+        onValueChange={([lo, hi]) => onChange(lo, hi)}
+        active={!isDefault}
+      />
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--t3)', marginTop: 6 }}>
         <span>{fmt(min)}</span><span>{fmt(max)}</span>
       </div>
     </Row>
@@ -219,17 +206,31 @@ export default function FilterPanel() {
   const toggleBucket = (b: string) => set('timeBuckets', filters.timeBuckets.includes(b) ? filters.timeBuckets.filter(x => x !== b) : [...filters.timeBuckets, b])
   const toggleTag    = (tag: string) => set('activeTags', filters.activeTags.includes(tag) ? filters.activeTags.filter(x => x !== tag) : [...filters.activeTags, tag])
 
-  if (!filterOpen) return null
-
   return (
-    <>
-      <div onClick={() => setFilterOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'rgba(0,0,0,0.35)' }} />
+    <AnimatePresence>
+      {filterOpen && (<>
+      <motion.div
+        key="fp-backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18 }}
+        onClick={() => setFilterOpen(false)}
+        style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'rgba(0,0,0,0.45)' }}
+      />
 
-      <div style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0, width: 300, zIndex: 50,
-        background: 'var(--bg1)', borderLeft: '1px solid var(--border2)',
-        overflowY: 'auto', display: 'flex', flexDirection: 'column',
-      }}>
+      <motion.div
+        key="fp-panel"
+        initial={{ x: 310 }}
+        animate={{ x: 0 }}
+        exit={{ x: 310 }}
+        transition={{ type: 'spring', stiffness: 380, damping: 36, mass: 0.9 }}
+        style={{
+          position: 'fixed', top: 0, right: 0, bottom: 0, width: 300, zIndex: 50,
+          background: 'var(--bg1)', borderLeft: '1px solid var(--border2)',
+          overflowY: 'auto', display: 'flex', flexDirection: 'column',
+        }}
+      >
 
         {/* Header */}
         <div style={{
@@ -462,7 +463,8 @@ export default function FilterPanel() {
         )}
 
         <div style={{ height: 24 }} />
-      </div>
-    </>
+      </motion.div>
+      </>)}
+    </AnimatePresence>
   )
 }

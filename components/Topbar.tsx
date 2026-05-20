@@ -1,4 +1,5 @@
 'use client'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '@/lib/store'
 import { usePathname } from 'next/navigation'
 
@@ -109,14 +110,25 @@ export default function Topbar() {
             cursor: 'pointer', transition: 'all .15s',
           }}>
             ⊟ Filters
-            {activeFilterCount > 0 && (
-              <span style={{
-                background: 'var(--blue)', color: '#fff',
-                borderRadius: '50%', width: 16, height: 16,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 9, fontWeight: 700,
-              }}>{activeFilterCount}</span>
-            )}
+            <AnimatePresence>
+              {activeFilterCount > 0 && (
+                <motion.span
+                  key={activeFilterCount}
+                  initial={{ scale: 0.4, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.4, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 28 }}
+                  style={{
+                    background: 'var(--blue)', color: '#fff',
+                    borderRadius: '50%', width: 16, height: 16,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 9, fontWeight: 700,
+                  }}
+                >
+                  {activeFilterCount}
+                </motion.span>
+              )}
+            </AnimatePresence>
           </button>
         )}
       </div>
