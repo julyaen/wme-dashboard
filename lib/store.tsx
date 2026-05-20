@@ -7,6 +7,7 @@ import { parseXLSX, computeStats, computeRanges } from '@/lib/parser'
 import { normalizeFromRaw } from '@/lib/normalizer'
 import type { NormalizeResult } from '@/lib/normalizer'
 import { applyFilters } from '@/lib/filters'
+import { saveSession, loadLatestSession, loadAllTags, upsertTag } from '@/lib/db'
 
 function makeDefaultFilters(r: FilterRanges): FilterState {
   return {
@@ -79,10 +80,29 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [tagIndex,   setTagIndex]         = useState<Record<string, string[]>>({})
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('wme_tags')
-      if (stored) setTagIndex(JSON.parse(stored))
-    } catch {}
+    // Load tags — Supabase first, fall back to localStorage
+    loadAllTags().then(remote => {
+      if (Object.keys(remote).length > 0) {
+        setTagIndex(remote)
+      } else {
+        try {
+          const stored = localStorage.getItem('wme_tags')
+          if (stored) setTagIndex(JSON.parse(stored))
+        } catch {}
+      }
+    })
+
+    // Restore last session from Supabase (so trades survive page refresh)
+    loadLatestSession().then(session => {
+      if (!session) return
+      const r = computeRanges(session.trades)
+      const defaults = makeDefaultFilters(r)
+      setTrades(session.trades)
+      setRanges(r)
+      setFileName(session.fileName)
+      setGlobalFilters(defaults)
+      setLocalFilters(defaults)
+    })
   }, [])
 
   const setTradeTag = useCallback((tradeId: string, tags: string[]) => {
@@ -91,6 +111,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (tags.length === 0) delete next[tradeId]
       else next[tradeId] = tags
       localStorage.setItem('wme_tags', JSON.stringify(next))
+      upsertTag(tradeId, tags)
       return next
     })
   }, [])
@@ -118,6 +139,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setFileName(name)
       setGlobalFilters(defaults)
       setLocalFilters(defaults)
+      saveSession(name, parsed)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Parse error')
     } finally {
@@ -137,6 +159,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setFileName(name)
       setGlobalFilters(defaults)
       setLocalFilters(defaults)
+      saveSession(name, parsed)
       if (warnings.length) setError(warnings.join('\n'))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Normalizer error')

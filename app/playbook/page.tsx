@@ -1,5 +1,10 @@
 'use client'
-import { useMemo, useState, useEffect, useRef } from 'react'
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react'
+import {
+  loadAllSetupNotes, upsertSetupNote,
+  uploadSetupScreenshot, deleteSetupScreenshot, getSetupScreenshotPublicUrl,
+} from '@/lib/db'
+import { hasSupabase } from '@/lib/supabase'
 import { useStore } from '@/lib/store'
 import { WinRateBar } from '@/components/Charts'
 import { fmtDt, fmtDuration } from '@/lib/parser'
@@ -47,32 +52,57 @@ export default function PlaybookPage() {
   const screenshotInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    try {
-      const n = localStorage.getItem('wme-setup-notes')
-      if (n) setSetupNotes(JSON.parse(n))
-      const s = localStorage.getItem('wme-setup-screenshots')
-      if (s) setSetupScreenshots(JSON.parse(s))
-    } catch {}
+    if (hasSupabase) {
+      // Load notes from Supabase
+      loadAllSetupNotes().then(remote => {
+        if (Object.keys(remote).length > 0) setSetupNotes(remote)
+        else {
+          try { const s = localStorage.getItem('wme-setup-notes'); if (s) setSetupNotes(JSON.parse(s)) } catch {}
+        }
+      })
+      // Load screenshot URLs from Supabase Storage
+      // URLs are built on-demand via getSetupScreenshotPublicUrl — no local state needed
+    } else {
+      try {
+        const n = localStorage.getItem('wme-setup-notes')
+        if (n) setSetupNotes(JSON.parse(n))
+        const s = localStorage.getItem('wme-setup-screenshots')
+        if (s) setSetupScreenshots(JSON.parse(s))
+      } catch {}
+    }
   }, [])
 
-  function saveNote(name: string, text: string) {
-    const next = { ...setupNotes, [name]: text }
-    setSetupNotes(next)
-    localStorage.setItem('wme-setup-notes', JSON.stringify(next))
-  }
+  const saveNote = useCallback((name: string, text: string) => {
+    setSetupNotes(prev => {
+      const next = { ...prev, [name]: text }
+      if (hasSupabase) upsertSetupNote(name, text)
+      else localStorage.setItem('wme-setup-notes', JSON.stringify(next))
+      return next
+    })
+  }, [])
 
-  function saveScreenshot(name: string, dataUrl: string) {
-    const next = { ...setupScreenshots, [name]: dataUrl }
-    setSetupScreenshots(next)
-    localStorage.setItem('wme-setup-screenshots', JSON.stringify(next))
-  }
+  const saveScreenshot = useCallback(async (name: string, dataUrl: string) => {
+    if (hasSupabase) {
+      const url = await uploadSetupScreenshot(name, dataUrl)
+      if (url) setSetupScreenshots(prev => ({ ...prev, [name]: url }))
+    } else {
+      setSetupScreenshots(prev => {
+        const next = { ...prev, [name]: dataUrl }
+        localStorage.setItem('wme-setup-screenshots', JSON.stringify(next))
+        return next
+      })
+    }
+  }, [])
 
-  function removeScreenshot(name: string) {
-    const next = { ...setupScreenshots }
-    delete next[name]
-    setSetupScreenshots(next)
-    localStorage.setItem('wme-setup-screenshots', JSON.stringify(next))
-  }
+  const removeScreenshot = useCallback((name: string) => {
+    setSetupScreenshots(prev => {
+      const next = { ...prev }
+      delete next[name]
+      if (hasSupabase) deleteSetupScreenshot(name)
+      else localStorage.setItem('wme-setup-screenshots', JSON.stringify(next))
+      return next
+    })
+  }, [])
 
   const setups = useMemo(() => {
     const map = new Map<string, Trade[]>()
@@ -376,11 +406,12 @@ export default function PlaybookPage() {
                 </button>
               )}
             </div>
-            {setupScreenshots[activeSetup.name] ? (
+            {(setupScreenshots[activeSetup.name] || (hasSupabase && getSetupScreenshotPublicUrl(activeSetup.name))) ? (
               <img
-                src={setupScreenshots[activeSetup.name]}
+                src={setupScreenshots[activeSetup.name] ?? getSetupScreenshotPublicUrl(activeSetup.name) ?? ''}
                 alt={`${activeSetup.name} reference`}
                 style={{ width: '100%', borderRadius: 6, display: 'block' }}
+                onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
               />
             ) : (
               <label style={{

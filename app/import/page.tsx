@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react'
 import { useStore } from '@/lib/store'
 import { useRouter } from 'next/navigation'
 
-type Mode = 'raw' | 'xlsx'
+type Mode = 'raw' | 'normalized'
 
 function DropZone({
   label, sub, accepts, file, dragging,
@@ -57,7 +57,7 @@ export default function ImportPage() {
   const { loadFile, loadFromRaw, loading, error, fileName, trades } = useStore()
   const router = useRouter()
 
-  const [mode, setMode]           = useState<Mode>('raw')
+  const [mode, setMode] = useState<Mode>('raw')
 
   // Raw mode state
   const [marketFile, setMarketFile] = useState<File | null>(null)
@@ -153,11 +153,11 @@ export default function ImportPage() {
         borderRadius: 9, padding: 4, marginBottom: 20,
         border: '1px solid var(--border)',
       }}>
-        <button style={tabStyle(mode === 'raw')}  onClick={() => setMode('raw')}>
+        <button style={tabStyle(mode === 'raw')}        onClick={() => setMode('raw')}>
           Raw files (Sierra Chart)
         </button>
-        <button style={tabStyle(mode === 'xlsx')} onClick={() => setMode('xlsx')}>
-          Normalized XLSX
+        <button style={tabStyle(mode === 'normalized')} onClick={() => setMode('normalized')}>
+          Normalized XLSX / CSV
         </button>
       </div>
 
@@ -225,8 +225,8 @@ export default function ImportPage() {
         </>
       )}
 
-      {/* ── XLSX mode ────────────────────────────────────────────────────────── */}
-      {mode === 'xlsx' && (
+      {/* ── Normalized mode (XLSX + CSV) ─────────────────────────────────────── */}
+      {mode === 'normalized' && (
         <div
           className="card"
           onDragOver={e => { e.preventDefault(); setDragXlsx(true) }}
@@ -242,17 +242,17 @@ export default function ImportPage() {
         >
           <div style={{ fontSize: 36, marginBottom: 12 }}>↑</div>
           <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 6 }}>
-            Drop your normalized XLSX or click to browse
+            Drop your normalized file or click to browse
           </div>
           <div style={{ fontSize: 11, color: 'var(--t3)', marginBottom: 16 }}>
-            wme_fasterV2_normalized.xlsx · pre-processed export
+            wme_fasterV2_normalized.xlsx / .csv · pre-processed export
           </div>
           <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
-            {['.xlsx', '.xls'].map(f => (
+            {['.xlsx', '.xls', '.csv'].map(f => (
               <span key={f} className="badge badge-gray">{f}</span>
             ))}
           </div>
-          <input id="xlsxInput" type="file" accept=".xlsx,.xls"
+          <input id="xlsxInput" type="file" accept=".xlsx,.xls,.csv"
             style={{ display: 'none' }}
             onChange={e => { const f = e.target.files?.[0]; if (f) processXlsx(f) }} />
         </div>
@@ -262,7 +262,7 @@ export default function ImportPage() {
       {loading && (
         <div className="card" style={{ marginTop: 12 }}>
           <div style={{ color: 'var(--t2)', fontSize: 12, marginBottom: 8 }}>
-            {mode === 'raw' ? '⟳  Normalizing and joining files...' : '⟳  Parsing file...'}
+            {mode === 'raw' ? '⟳  Normalizing and joining files...' : '⟳  Parsing...'}
           </div>
           <div style={{ height: 4, background: 'var(--bg3)', borderRadius: 2, overflow: 'hidden' }}>
             <div style={{
