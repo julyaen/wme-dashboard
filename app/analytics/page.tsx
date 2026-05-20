@@ -440,7 +440,7 @@ export default function AnalyticsPage() {
                   color: deltaWindow === w ? 'var(--amber)' : 'var(--t3)',
                   cursor: 'pointer', fontWeight: deltaWindow === w ? 600 : 400,
                 }}>
-                  {w}T
+                  {w} trades
                 </button>
               ))}
             </div>
@@ -453,7 +453,7 @@ export default function AnalyticsPage() {
           <strong style={{ color: 'var(--amber)' }}>Reading: </strong>
           Amber line drifting positive = you tend to enter on ASK pressure. Negative = BID pressure.
           Green bars above zero = winning entries with positive delta. Look for clusters of green in a consistent zone.
-          Use a shorter window ({DELTA_WINDOWS[0]}T–{DELTA_WINDOWS[1]}T) to catch intraday shifts; longer ({DELTA_WINDOWS[2]}T–{DELTA_WINDOWS[3]}T) to see overall tendency.
+          Use a shorter window ({DELTA_WINDOWS[0]}–{DELTA_WINDOWS[1]} trades) to catch intraday shifts; longer ({DELTA_WINDOWS[2]}–{DELTA_WINDOWS[3]} trades) to see overall tendency.
         </div>
       </div>
 
