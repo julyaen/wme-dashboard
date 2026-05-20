@@ -1,5 +1,5 @@
 'use client'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store'
 import {
   WinRateBar, DailyBar, DrawdownChart,
@@ -10,8 +10,11 @@ import {
 import type { HistBin } from '@/components/Charts'
 import Link from 'next/link'
 
+const DELTA_WINDOWS = [5, 10, 20, 50] as const
+
 export default function AnalyticsPage() {
   const { stats, filteredTrades: trades } = useStore()
+  const [deltaWindow, setDeltaWindow] = useState(20)
 
   // Streak series — running streak value per trade
   const streakData = useMemo(() => {
@@ -61,11 +64,10 @@ export default function AnalyticsPage() {
     }
   }, [trades])
 
-  // Delta skew — per-trade Delta% with 20-trade rolling average
+  // Delta skew — per-trade Delta% with configurable rolling average window
   const deltaSkewData = useMemo(() => {
-    const WINDOW = 20
     return trades.map((t, i) => {
-      const slice = trades.slice(Math.max(0, i - WINDOW + 1), i + 1)
+      const slice = trades.slice(Math.max(0, i - deltaWindow + 1), i + 1)
       const avg = slice.reduce((s, tr) => s + tr.market['Delta%'] * 100, 0) / slice.length
       return {
         trade: i + 1,
@@ -74,7 +76,7 @@ export default function AnalyticsPage() {
         win: t['Net PnL'] > 0,
       }
     })
-  }, [trades])
+  }, [trades, deltaWindow])
 
   // MFE/MAE scatter data
   const scatterData = useMemo(() => trades.map(t => ({
@@ -424,9 +426,25 @@ export default function AnalyticsPage() {
       <div className="card">
         <div className="card-title">
           Delta% at entry — trade by trade
-          <span style={{ marginLeft: 'auto', fontWeight: 400, color: 'var(--t3)' }}>
-            green = winner · red = loser · amber = 20-trade rolling avg
-          </span>
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontWeight: 400, color: 'var(--t3)', fontSize: 9 }}>
+              green = winner · red = loser · amber = rolling avg
+            </span>
+            <div style={{ display: 'flex', gap: 3 }}>
+              {DELTA_WINDOWS.map(w => (
+                <button key={w} onClick={() => setDeltaWindow(w)} style={{
+                  padding: '2px 7px', fontSize: 9, borderRadius: 4,
+                  border: '1px solid',
+                  borderColor: deltaWindow === w ? 'rgba(245,158,11,0.5)' : 'var(--border)',
+                  background: deltaWindow === w ? 'rgba(245,158,11,0.12)' : 'var(--bg3)',
+                  color: deltaWindow === w ? 'var(--amber)' : 'var(--t3)',
+                  cursor: 'pointer', fontWeight: deltaWindow === w ? 600 : 400,
+                }}>
+                  {w}T
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         <div style={{ height: 160 }}>
           <DeltaSkewChart data={deltaSkewData} />
@@ -435,6 +453,7 @@ export default function AnalyticsPage() {
           <strong style={{ color: 'var(--amber)' }}>Reading: </strong>
           Amber line drifting positive = you tend to enter on ASK pressure. Negative = BID pressure.
           Green bars above zero = winning entries with positive delta. Look for clusters of green in a consistent zone.
+          Use a shorter window ({DELTA_WINDOWS[0]}T–{DELTA_WINDOWS[1]}T) to catch intraday shifts; longer ({DELTA_WINDOWS[2]}T–{DELTA_WINDOWS[3]}T) to see overall tendency.
         </div>
       </div>
 
