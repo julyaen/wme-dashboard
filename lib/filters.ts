@@ -8,6 +8,14 @@ function bandPos(val: unknown): 'Above' | 'Below' {
 export function applyFilters(trades: Trade[], f: FilterState): Trade[] {
   return trades.filter(t => {
 
+    // ── Group 0: Quick selectors ───────────────────────────────────────────
+    if (f.account && t.Account !== f.account) return false
+    if (f.session !== 'All') {
+      const hour = new Date(t['Entry DateTime']).getHours()
+      if (f.session === 'AM' && hour >= 12) return false
+      if (f.session === 'PM' && hour < 12)  return false
+    }
+
     // ── Group 1: Setup ─────────────────────────────────────────────────────
     if (f.setups.length > 0 && !f.setups.includes(t.Setup)) return false
     if (f.tradeType !== 'All' && t['Trade Type'] !== f.tradeType) return false

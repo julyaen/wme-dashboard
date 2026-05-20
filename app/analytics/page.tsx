@@ -4,8 +4,9 @@ import { useStore } from '@/lib/store'
 import {
   WinRateBar, DailyBar, DrawdownChart,
   RollingExpChart, WeekdayBar, MFEMAEScatter,
-  HourHeatmap, StreakChart, MonteCarloChart,
+  HourHeatmap, StreakChart, MonteCarloChart, HistogramChart,
 } from '@/components/Charts'
+import type { HistBin } from '@/components/Charts'
 import Link from 'next/link'
 
 export default function AnalyticsPage() {
@@ -66,6 +67,50 @@ export default function AnalyticsPage() {
     pnl: t['Net PnL'],
     win: t['Net PnL'] > 0,
   })), [trades])
+
+  // Distribution histograms
+  const pnlHistogram = useMemo((): HistBin[] => {
+    if (!trades.length) return []
+    const pnls = trades.map(t => t['Net PnL'])
+    const lo = Math.min(...pnls), hi = Math.max(...pnls)
+    if (lo === hi) return []
+    const N = 20
+    const size = (hi - lo) / N
+    const bins = new Array(N).fill(0)
+    for (const v of pnls) bins[Math.min(N - 1, Math.floor((v - lo) / size))]++
+    return bins.map((count, i) => {
+      const center = lo + (i + 0.5) * size
+      return { label: `$${center.toFixed(0)}`, count, value: center }
+    })
+  }, [trades])
+
+  const mfeHistogram = useMemo((): HistBin[] => {
+    if (!trades.length) return []
+    const vals = trades.map(t => t['Max Open Profit (C)']).filter(v => v > 0)
+    if (!vals.length) return []
+    const hi = Math.max(...vals)
+    const N = 15
+    const size = hi / N
+    const bins = new Array(N).fill(0)
+    for (const v of vals) bins[Math.min(N - 1, Math.floor(v / size))]++
+    return bins.map((count, i) => ({
+      label: `$${((i + 0.5) * size).toFixed(0)}`, count, value: (i + 0.5) * size,
+    }))
+  }, [trades])
+
+  const maeHistogram = useMemo((): HistBin[] => {
+    if (!trades.length) return []
+    const vals = trades.map(t => Math.abs(t['Max Open Loss (C)'])).filter(v => v > 0)
+    if (!vals.length) return []
+    const hi = Math.max(...vals)
+    const N = 15
+    const size = hi / N
+    const bins = new Array(N).fill(0)
+    for (const v of vals) bins[Math.min(N - 1, Math.floor(v / size))]++
+    return bins.map((count, i) => ({
+      label: `$${((i + 0.5) * size).toFixed(0)}`, count, value: (i + 0.5) * size,
+    }))
+  }, [trades])
 
   if (!stats) {
     return (
@@ -358,6 +403,57 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
+
+      {/* Distribution histograms */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+        <div className="card">
+          <div className="card-title">
+            PnL distribution
+            <span style={{ marginLeft: 'auto', fontWeight: 400, color: 'var(--t3)' }}>
+              green = wins · red = losses
+            </span>
+          </div>
+          <div style={{ height: 140 }}>
+            <HistogramChart data={pnlHistogram} colorMode="pnl" />
+          </div>
+          <div className="insight" style={{ marginTop: 8 }}>
+            <strong style={{ color: 'var(--amber)' }}>Reading: </strong>
+            A right-skewed peak means most wins cluster above the loss zone — positive expectancy shape.
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-title">
+            MFE distribution
+            <span style={{ marginLeft: 'auto', fontWeight: 400, color: 'var(--t3)' }}>
+              max favorable excursion
+            </span>
+          </div>
+          <div style={{ height: 140 }}>
+            <HistogramChart data={mfeHistogram} colorMode="blue" />
+          </div>
+          <div className="insight" style={{ marginTop: 8 }}>
+            <strong style={{ color: 'var(--amber)' }}>Reading: </strong>
+            Where most MFEs cluster is your typical winner potential. Compare against your average exit.
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-title">
+            MAE distribution
+            <span style={{ marginLeft: 'auto', fontWeight: 400, color: 'var(--t3)' }}>
+              max adverse excursion
+            </span>
+          </div>
+          <div style={{ height: 140 }}>
+            <HistogramChart data={maeHistogram} colorMode="amber" />
+          </div>
+          <div className="insight" style={{ marginTop: 8 }}>
+            <strong style={{ color: 'var(--amber)' }}>Reading: </strong>
+            Heavy right tail = trades going deep before turning. Tight MAE cluster = clean entries.
+          </div>
+        </div>
+      </div>
 
       {/* Long vs Short deep dive */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>

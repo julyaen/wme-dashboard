@@ -33,6 +33,7 @@ const EMPTY_RANGES: FilterRanges = {
 
 interface StoreState {
   trades: Trade[]
+  accounts: string[]
   fileName: string
   loading: boolean
   error: string | null
@@ -63,6 +64,10 @@ const StoreCtx = createContext<StoreState | null>(null)
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [trades, setTrades]     = useState<Trade[]>([])
+  const accounts = useMemo(
+    () => Array.from(new Set(trades.map(t => t.Account).filter(Boolean))).sort(),
+    [trades]
+  )
   const [fileName, setFileName] = useState('')
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState<string | null>(null)
@@ -169,6 +174,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const f = activeFilters
     const r = ranges
     let n = 0
+    if (f.account) n++
+    if (f.session !== 'All') n++
     if (f.setups.length > 0) n++
     if (f.tradeType !== 'All') n++
     if (f.dateFrom || f.dateTo) n++
@@ -195,7 +202,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <StoreCtx.Provider value={{
-      trades, fileName, loading, error, loadFile, loadFromRaw, clearData,
+      trades, accounts, fileName, loading, error, loadFile, loadFromRaw, clearData,
       ranges,
       scope, setScope,
       globalFilters, setGlobalFilters,

@@ -1,8 +1,12 @@
 'use client'
 import { useStore } from '@/lib/store'
 import { usePathname } from 'next/navigation'
-import type { FilterState } from '@/types/filters'
-import { DEFAULT_FILTERS } from '@/types/filters'
+
+const SELECT_STYLE: React.CSSProperties = {
+  fontSize: 11, padding: '3px 6px', borderRadius: 5,
+  background: 'var(--bg2)', border: '1px solid var(--border2)',
+  color: 'var(--t2)', cursor: 'pointer', outline: 'none',
+}
 
 const PAGE_LABELS: Record<string, string> = {
   '/':          'Dashboard',
@@ -15,35 +19,18 @@ const PAGE_LABELS: Record<string, string> = {
 }
 
 export default function Topbar() {
-  const { filterOpen, setFilterOpen, activeFilterCount, activeFilters, filteredTrades, trades, fileName, isFiltered } = useStore()
+  const {
+    filterOpen, setFilterOpen, activeFilterCount, activeFilters,
+    filteredTrades, trades, fileName, isFiltered,
+    accounts, scope, globalFilters, setGlobalFilters, localFilters, setLocalFilters,
+  } = useStore()
   const path = usePathname()
   const pageLabel = PAGE_LABELS[path] ?? ''
 
-  // Build short summary of what's active
-  const activeSummary: string[] = []
-  const f = activeFilters
-  if (f.setups.length > 0) activeSummary.push(f.setups.join(', '))
-  if (f.tradeType !== 'All') activeSummary.push(f.tradeType)
-  if (f.wave2k !== 'Both') activeSummary.push(`2k:${f.wave2k}`)
-  if (f.wave2m !== 'Both') activeSummary.push(`2m:${f.wave2m}`)
-  if (f.wave30m !== 'Both') activeSummary.push(`30m:${f.wave30m}`)
-  if (f.wave30s !== 'Both') activeSummary.push(`30s:${f.wave30s}`)
-  if (f.entryVwap !== 'Both') activeSummary.push(`VWAP:${f.entryVwap}`)
-  if (f.entryTB1  !== 'Both') activeSummary.push(`TB1:${f.entryTB1}`)
-  if (f.entryTB2  !== 'Both') activeSummary.push(`TB2:${f.entryTB2}`)
-  if (f.entryTB3  !== 'Both') activeSummary.push(`TB3:${f.entryTB3}`)
-  if (f.entryBB1  !== 'Both') activeSummary.push(`BB1:${f.entryBB1}`)
-  if (f.rawImbalance !== 0) activeSummary.push(`Imbal:${f.rawImbalance > 0 ? 'BID' : 'ASK'}${Math.abs(f.rawImbalance)}`)
-  if (f.dwSkew !== 0) activeSummary.push(`DW:${f.dwSkew > 0 ? 'BID' : 'ASK'}${Math.abs(f.dwSkew).toFixed(2)}`)
-  if (f.timeBuckets.length > 0) activeSummary.push(f.timeBuckets.join('/'))
-  if (f.deltaMin !== DEFAULT_FILTERS.deltaMin || f.deltaMax !== DEFAULT_FILTERS.deltaMax)
-    activeSummary.push(`Δ${(f.deltaMin*100).toFixed(0)}%→${(f.deltaMax*100).toFixed(0)}%`)
-  if (f.e8mMin !== DEFAULT_FILTERS.e8mMin || f.e8mMax !== DEFAULT_FILTERS.e8mMax)
-    activeSummary.push(`E8m:${f.e8mMin}→${f.e8mMax}`)
-  if (f.bullDSSMin !== DEFAULT_FILTERS.bullDSSMin || f.bullDSSMax !== DEFAULT_FILTERS.bullDSSMax)
-    activeSummary.push(`BullDSS:${f.bullDSSMin}-${f.bullDSSMax}`)
-  if (f.bearDSSMin !== DEFAULT_FILTERS.bearDSSMin || f.bearDSSMax !== DEFAULT_FILTERS.bearDSSMax)
-    activeSummary.push(`BearDSS:${f.bearDSSMin}-${f.bearDSSMax}`)
+  function setFilter(update: Partial<typeof activeFilters>) {
+    if (scope === 'global') setGlobalFilters({ ...globalFilters, ...update })
+    else setLocalFilters({ ...localFilters, ...update })
+  }
 
   return (
     <div style={{
@@ -61,6 +48,40 @@ export default function Topbar() {
 
 
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+
+        {/* Account selector */}
+        {accounts.length > 1 && (
+          <select
+            value={activeFilters.account}
+            onChange={e => setFilter({ account: e.target.value })}
+            style={{
+              ...SELECT_STYLE,
+              borderColor: activeFilters.account ? 'rgba(59,130,246,0.4)' : 'var(--border2)',
+              color: activeFilters.account ? 'var(--blue)' : 'var(--t2)',
+            }}
+          >
+            <option value="">All accounts</option>
+            {accounts.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+        )}
+
+        {/* Session selector */}
+        {trades.length > 0 && (
+          <select
+            value={activeFilters.session}
+            onChange={e => setFilter({ session: e.target.value as 'All' | 'AM' | 'PM' })}
+            style={{
+              ...SELECT_STYLE,
+              borderColor: activeFilters.session !== 'All' ? 'rgba(59,130,246,0.4)' : 'var(--border2)',
+              color: activeFilters.session !== 'All' ? 'var(--blue)' : 'var(--t2)',
+            }}
+          >
+            <option value="All">All sessions</option>
+            <option value="AM">AM session</option>
+            <option value="PM">PM session</option>
+          </select>
+        )}
+
         {/* Trade count */}
         {trades.length > 0 && (
           <span style={{ fontSize: 10, color: isFiltered ? 'var(--blue)' : 'var(--t3)' }}>

@@ -277,6 +277,44 @@ export function MonteCarloChart({ data }: MonteCarloChartProps) {
   )
 }
 
+// ── Histogram Chart ───────────────────────────────────────────────────────────
+export interface HistBin { label: string; count: number; value: number }
+interface HistogramChartProps {
+  data: HistBin[]
+  colorMode?: 'pnl' | 'blue' | 'amber'
+}
+
+export function HistogramChart({ data, colorMode = 'blue' }: HistogramChartProps) {
+  const barColor = (value: number) => {
+    if (colorMode === 'pnl') return value >= 0 ? '#22c55e' : '#ef4444'
+    if (colorMode === 'amber') return '#f59e0b'
+    return '#3b82f6'
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} barCategoryGap="2%">
+        <XAxis dataKey="label" tick={{ fill: TICK_COLOR, fontSize: 8 }}
+          axisLine={false} tickLine={false} interval="preserveStartEnd" />
+        <YAxis tick={{ fill: TICK_COLOR, fontSize: 9 }}
+          axisLine={false} tickLine={false} width={28}
+          allowDecimals={false} />
+        <ReferenceLine x="0" stroke="rgba(255,255,255,0.1)" />
+        <Tooltip
+          contentStyle={{ background: '#181c23', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, fontSize: 11 }}
+          formatter={(v: number) => [v, 'Trades']}
+          labelFormatter={(label: string) => label}
+        />
+        <Bar dataKey="count" radius={[2, 2, 0, 0]}>
+          {data.map((entry, i) => (
+            <Cell key={i} fill={barColor(entry.value)} fillOpacity={0.75} />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  )
+}
+
 // ── Streak Chart ──────────────────────────────────────────────────────────────
 interface StreakPoint { trade: number; streak: number }
 interface StreakChartProps { data: StreakPoint[] }

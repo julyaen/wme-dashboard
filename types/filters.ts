@@ -30,7 +30,13 @@ export interface FilterRanges {
   wcl2k2mMin: number;  wcl2k2mMax: number
 }
 
+export type SessionFilter = 'All' | 'AM' | 'PM'
+
 export interface FilterState {
+  // Group 0 — Quick selectors
+  account: string
+  session: SessionFilter
+
   // Group 1 — Setup
   setups: string[]
   tradeType: 'All' | 'Long' | 'Short'
@@ -70,6 +76,8 @@ export interface FilterState {
 }
 
 export const DEFAULT_FILTERS: FilterState = {
+  account: '',
+  session: 'All',
   setups: [],
   tradeType: 'All',
   dateFrom: '', dateTo: '',
@@ -90,6 +98,8 @@ export const DEFAULT_FILTERS: FilterState = {
 
 export function isDefaultFilters(f: FilterState, ranges: FilterRanges): boolean {
   return (
+    f.account === '' &&
+    f.session === 'All' &&
     f.setups.length === 0 &&
     f.tradeType === 'All' &&
     f.dateFrom === '' && f.dateTo === '' &&
