@@ -341,13 +341,22 @@ export default function FilterPanel() {
             onChange={v => set('rawImbalance', v)}
           />
         </div>
-        <div style={{ padding: '0 0 8px' }}>
+        <div style={{ padding: '0 0 4px' }}>
           <ImbalanceSlider
             label="Delta Wave (Net DW Skew)"
             value={filters.dwSkew}
             min={ranges.dwMin} max={ranges.dwMax}
             step={1}
             onChange={v => set('dwSkew', v)}
+          />
+        </div>
+        <div style={{ padding: '0 0 8px' }}>
+          <ImbalanceSlider
+            label="Raw Delta Wave (DWask − DWbid)"
+            value={filters.rawDW}
+            min={ranges.rawDWMin} max={ranges.rawDWMax}
+            step={1}
+            onChange={v => set('rawDW', v)}
           />
         </div>
 

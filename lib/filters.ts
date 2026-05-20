@@ -54,6 +54,13 @@ export function applyFilters(trades: Trade[], f: FilterState): Trade[] {
       if (t.market['Net DWSkew'] * 100 > -f.dwSkew) return false
     }
 
+    // Raw Delta Wave (DWask − DWbid) × 100, same direction convention
+    if (f.rawDW < 0) {
+      if ((t.market.DWask - t.market.DWbid) * 100 < Math.abs(f.rawDW)) return false
+    } else if (f.rawDW > 0) {
+      if ((t.market.DWask - t.market.DWbid) * 100 > -f.rawDW) return false
+    }
+
     // ── Group 4: Numeric ranges ────────────────────────────────────────────
     const delta = t.market['Delta%']
     if (delta < f.deltaMin || delta > f.deltaMax) return false

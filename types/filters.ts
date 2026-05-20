@@ -27,6 +27,7 @@ export interface FilterRanges {
   bearMin: number;     bearMax: number
   rawMin: number;      rawMax: number
   dwMin: number;       dwMax: number
+  rawDWMin: number;    rawDWMax: number
   wcl2k2mMin: number;  wcl2k2mMax: number
 }
 
@@ -59,6 +60,7 @@ export interface FilterState {
   // Group 3 — Volume pressure
   rawImbalance: number
   dwSkew: number
+  rawDW: number
 
   // Group 4 — Numeric ranges (bounds set from data at load time)
   deltaMin: number;    deltaMax: number
@@ -86,6 +88,7 @@ export const DEFAULT_FILTERS: FilterState = {
   entryTB3: 'Both', entryBB1: 'Both', entryBB2: 'Both', entryBB3: 'Both',
   rawImbalance: 0,
   dwSkew: 0,
+  rawDW: 0,
   deltaMin: -1,      deltaMax: 1,
   e8kMin: -200,      e8kMax: 200,
   e8mMin: -200,      e8mMax: 200,
@@ -110,6 +113,7 @@ export function isDefaultFilters(f: FilterState, ranges: FilterRanges): boolean 
     f.entryBB1 === 'Both' && f.entryBB2 === 'Both' && f.entryBB3 === 'Both' &&
     f.rawImbalance === 0 &&
     f.dwSkew === 0 &&
+    f.rawDW === 0 &&
     f.deltaMin === ranges.deltaMin && f.deltaMax === ranges.deltaMax &&
     f.e8kMin === ranges.e8kMin     && f.e8kMax === ranges.e8kMax &&
     f.e8mMin === ranges.e8mMin     && f.e8mMax === ranges.e8mMax &&

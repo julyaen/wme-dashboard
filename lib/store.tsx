@@ -28,6 +28,7 @@ const EMPTY_RANGES: FilterRanges = {
   bearMin: 0,      bearMax: 100,
   rawMin: -800,    rawMax: 800,
   dwMin: -105,     dwMax: 105,
+  rawDWMin: -105,  rawDWMax: 105,
   wcl2k2mMin: -200, wcl2k2mMax: 200,
 }
 
@@ -187,6 +188,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         f.entryBB3 !== 'Both') n++
     if (f.rawImbalance !== 0) n++
     if (f.dwSkew !== 0) n++
+    if (f.rawDW !== 0) n++
     if (f.deltaMin !== r.deltaMin    || f.deltaMax !== r.deltaMax    ||
         f.e8kMin !== r.e8kMin        || f.e8kMax !== r.e8kMax        ||
         f.e8mMin !== r.e8mMin        || f.e8mMax !== r.e8mMax        ||
