@@ -60,8 +60,11 @@ export interface MarketBar {
   wBID: number
   wASK: number
   vwap_TB1: number
-  'asDSS>70': number
-  'biDSS>70': number
+  // Market framework
+  BarRange: number
+  ATR: number
+  IBHigh: number
+  IBLow: number
 }
 
 export interface Trade {

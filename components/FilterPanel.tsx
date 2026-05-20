@@ -124,8 +124,8 @@ function RangeSlider({ label, min, max, valMin, valMax, step = 1, fmt, onChange 
   )
 }
 
-function ImbalanceSlider({ value, min, max, onChange }: {
-  value: number; min: number; max: number; onChange: (v: number) => void
+function ImbalanceSlider({ label, value, min, max, step = 50, onChange }: {
+  label: string; value: number; min: number; max: number; step?: number; onChange: (v: number) => void
 }) {
   const absMax  = Math.max(Math.abs(min), Math.abs(max))
   const sliderMin = -absMax
@@ -138,7 +138,7 @@ function ImbalanceSlider({ value, min, max, onChange }: {
   return (
     <Row>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <RowLabel>Volume imbalance (Raw ASK−BID)</RowLabel>
+        <RowLabel>{label}</RowLabel>
         {!isCenter && (
           <button onClick={() => onChange(0)} style={{
             fontSize: 9, color: 'var(--t3)', background: 'none',
@@ -176,14 +176,14 @@ function ImbalanceSlider({ value, min, max, onChange }: {
           boxShadow: '0 1px 4px rgba(0,0,0,0.5)',
           pointerEvents: 'none', transition: 'background .15s',
         }} />
-        <input type="range" min={sliderMin} max={sliderMax} step={50} value={value}
+        <input type="range" min={sliderMin} max={sliderMax} step={step} value={value}
           onChange={e => onChange(Number(e.target.value))}
           style={{ position: 'absolute', left: 0, right: 0, width: '100%', opacity: 0, cursor: 'pointer', height: 20, margin: 0 }} />
       </div>
       <div style={{ fontSize: 10, textAlign: 'center', fontFamily: 'monospace', color: isCenter ? 'var(--t3)' : isAsk ? 'var(--green)' : 'var(--red)' }}>
         {isCenter ? 'No filter — all trades' : isAsk
-          ? `ASK − BID ≥ +${Math.abs(value)}`
-          : `BID − ASK ≥ +${Math.abs(value)}`}
+          ? `ASK dominant ≥ ${Math.abs(value)}`
+          : `BID dominant ≥ ${Math.abs(value)}`}
       </div>
     </Row>
   )
@@ -318,11 +318,22 @@ export default function FilterPanel() {
 
         {/* ③ Volume pressure */}
         <GroupLabel num="③">Volume &amp; pressure</GroupLabel>
-        <div style={{ padding: '4px 0 8px' }}>
+        <div style={{ padding: '4px 0 4px' }}>
           <ImbalanceSlider
+            label="Volume imbalance (Raw ASK−BID)"
             value={filters.rawImbalance}
             min={ranges.rawMin} max={ranges.rawMax}
+            step={50}
             onChange={v => set('rawImbalance', v)}
+          />
+        </div>
+        <div style={{ padding: '0 0 8px' }}>
+          <ImbalanceSlider
+            label="Delta Wave (Net DW Skew)"
+            value={filters.dwSkew}
+            min={ranges.dwMin} max={ranges.dwMax}
+            step={1}
+            onChange={v => set('dwSkew', v)}
           />
         </div>
 
@@ -340,6 +351,10 @@ export default function FilterPanel() {
           valMin={filters.e8mMin} valMax={filters.e8mMax}
           fmt={v => `${v > 0 ? '+' : ''}${v}`}
           onChange={(mn,mx) => setFilters({ ...filters, e8mMin: mn, e8mMax: mx })} />
+        <RangeSlider label="2kWCL vs 2mWCL (ticks)" min={ranges.wcl2k2mMin} max={ranges.wcl2k2mMax} step={1}
+          valMin={filters.wcl2k2mMin} valMax={filters.wcl2k2mMax}
+          fmt={v => `${v > 0 ? '+' : ''}${v}`}
+          onChange={(mn,mx) => setFilters({ ...filters, wcl2k2mMin: mn, wcl2k2mMax: mx })} />
         <RangeSlider label="BullishDSS" min={ranges.bullMin} max={ranges.bullMax} step={1}
           valMin={filters.bullDSSMin} valMax={filters.bullDSSMax}
           fmt={v => String(v)}

@@ -124,8 +124,10 @@ function extractMarket(r: Record<string, unknown>): MarketBar {
     BullishDSS: n('BullishDSS'), BearishDSS: n('BearishDSS'),
     wBID: n('wBID'), wASK: n('wASK'),
     vwap_TB1: n('vwap_TB1'),
-    'asDSS>70': n('asDSS>70'),
-    'biDSS>70': n('biDSS>70'),
+    BarRange: n('BarRange') || (n('High') - n('Low')),
+    ATR:      n('ATR'),
+    IBHigh:   n('IBHigh'),
+    IBLow:    n('IBLow'),
   }
 }
 
@@ -522,37 +524,44 @@ import type { FilterRanges } from '@/types/filters'
 
 export function computeRanges(trades: Trade[]): FilterRanges {
   if (!trades.length) return {
-    deltaMin: -1, deltaMax: 1,
-    e8kMin: -200, e8kMax: 200,
-    e8mMin: -200, e8mMax: 200,
-    bullMin: 0,   bullMax: 100,
-    bearMin: 0,   bearMax: 100,
-    rawMin: -800, rawMax: 800,
+    deltaMin: -1,    deltaMax: 1,
+    e8kMin: -200,    e8kMax: 200,
+    e8mMin: -200,    e8mMax: 200,
+    bullMin: 0,      bullMax: 100,
+    bearMin: 0,      bearMax: 100,
+    rawMin: -800,    rawMax: 800,
+    dwMin: -1,       dwMax: 1,
+    wcl2k2mMin: -200, wcl2k2mMax: 200,
   }
-  const pad = (v: number, pct = 0.1) => Math.abs(v) * pct
 
-  const deltas  = trades.map(t => t.market['Delta%'])
-  const e8ks    = trades.map(t => t.market.E8_2kCL)
-  const e8ms    = trades.map(t => t.market.E8_2mCL)
-  const bulls   = trades.map(t => t.market.BullishDSS)
-  const bears   = trades.map(t => t.market.BearishDSS)
-  const raws    = trades.map(t => t.market['RawASK-BID'])
+  const deltas   = trades.map(t => t.market['Delta%'])
+  const e8ks     = trades.map(t => t.market.E8_2kCL)
+  const e8ms     = trades.map(t => t.market.E8_2mCL)
+  const bulls    = trades.map(t => t.market.BullishDSS)
+  const bears    = trades.map(t => t.market.BearishDSS)
+  const raws     = trades.map(t => t.market['RawASK-BID'])
+  const dws      = trades.map(t => t.market['Net DWSkew'])
+  const wcl2k2ms = trades.map(t => t.market['2kWCL vs 2mWCL'])
 
   const flr = (arr: number[]) => Math.floor(Math.min(...arr))
   const cel = (arr: number[]) => Math.ceil(Math.max(...arr))
 
   return {
-    deltaMin: Math.max(-1, flr(deltas)),
-    deltaMax: Math.min(1,  cel(deltas)),
-    e8kMin:   flr(e8ks)   - 5,
-    e8kMax:   cel(e8ks)   + 5,
-    e8mMin:   flr(e8ms)   - 5,
-    e8mMax:   cel(e8ms)   + 5,
-    bullMin:  Math.max(0,   flr(bulls)),
-    bullMax:  Math.min(100, cel(bulls)),
-    bearMin:  Math.max(0,   flr(bears)),
-    bearMax:  Math.min(100, cel(bears)),
-    rawMin:   flr(raws)   - 50,
-    rawMax:   cel(raws)   + 50,
+    deltaMin:    Math.max(-1,  flr(deltas)),
+    deltaMax:    Math.min(1,   cel(deltas)),
+    e8kMin:      flr(e8ks)   - 5,
+    e8kMax:      cel(e8ks)   + 5,
+    e8mMin:      flr(e8ms)   - 5,
+    e8mMax:      cel(e8ms)   + 5,
+    bullMin:     Math.max(0,   flr(bulls)),
+    bullMax:     Math.min(100, cel(bulls)),
+    bearMin:     Math.max(0,   flr(bears)),
+    bearMax:     Math.min(100, cel(bears)),
+    rawMin:      flr(raws)   - 50,
+    rawMax:      cel(raws)   + 50,
+    dwMin:       Math.floor(Math.min(...dws) * 100) - 5,
+    dwMax:       Math.ceil(Math.max(...dws)  * 100) + 5,
+    wcl2k2mMin:  flr(wcl2k2ms) - 5,
+    wcl2k2mMax:  cel(wcl2k2ms) + 5,
   }
 }
