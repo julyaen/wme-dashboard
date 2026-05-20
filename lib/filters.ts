@@ -29,26 +29,21 @@ export function applyFilters(trades: Trade[], f: FilterState): Trade[] {
     if (f.entryBB2  !== 'Both' && bandPos(t['Entry <BB2'])  !== f.entryBB2)  return false
     if (f.entryBB3  !== 'Both' && bandPos(t['Entry <BB3'])  !== f.entryBB3)  return false
 
-    // ── Group 3: Volume / pressure ─────────────────────────────────────────
-    if (f.ask1050 !== 'Both') {
-      const val = t.market['ASK>1050'] === 1
-      if (f.ask1050 === 'Yes' && !val) return false
-      if (f.ask1050 === 'No'  &&  val) return false
-    }
-    if (f.bid950 !== 'Both') {
-      const val = t.market['BID<950'] === 1
-      if (f.bid950 === 'Yes' && !val) return false
-      if (f.bid950 === 'No'  &&  val) return false
-    }
-
-    // Raw volume imbalance slider
-    // rawImbalance < 0 → filter ASK dominant: RawASK-BID >= abs(rawImbalance)
-    // rawImbalance > 0 → filter BID dominant: RawASK-BID <= -rawImbalance
-    // rawImbalance = 0 → no filter
+    // ── Group 3: Volume pressure ───────────────────────────────────────────
+    // Raw ASK-BID imbalance slider
+    // negative value → ASK dominant: keep trades where RawASK-BID >= |threshold|
+    // positive value → BID dominant: keep trades where RawASK-BID <= -threshold
     if (f.rawImbalance < 0) {
       if (t.market['RawASK-BID'] < Math.abs(f.rawImbalance)) return false
     } else if (f.rawImbalance > 0) {
       if (t.market['RawASK-BID'] > -f.rawImbalance) return false
+    }
+
+    // Delta Wave slider — stored as integer (Net DWSkew × 100), same direction as rawImbalance
+    if (f.dwSkew < 0) {
+      if (t.market['Net DWSkew'] * 100 < Math.abs(f.dwSkew)) return false
+    } else if (f.dwSkew > 0) {
+      if (t.market['Net DWSkew'] * 100 > -f.dwSkew) return false
     }
 
     // ── Group 4: Numeric ranges ────────────────────────────────────────────
@@ -67,7 +62,10 @@ export function applyFilters(trades: Trade[], f: FilterState): Trade[] {
     const bear = t.market.BearishDSS
     if (bear < f.bearDSSMin || bear > f.bearDSSMax) return false
 
-    // ── Group 5: Time buckets ─────────────────────────────────────────────
+    const wcl = t.market['2kWCL vs 2mWCL']
+    if (wcl < f.wcl2k2mMin || wcl > f.wcl2k2mMax) return false
+
+    // ── Group 5: Time buckets ──────────────────────────────────────────────
     if (f.timeBuckets.length > 0 && !f.timeBuckets.includes(t.market['Time Bucket'])) return false
 
     return true

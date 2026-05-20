@@ -1,15 +1,17 @@
-export type WaveFilter = 'Both' | 'Green' | 'Red'
+export type WaveFilter   = 'Both' | 'Green' | 'Red'
 export type BinaryFilter = 'Both' | 'Yes' | 'No'
-export type VwapFilter = 'Both' | 'Above' | 'Below'
-export type FilterScope = 'global' | 'local'
+export type VwapFilter   = 'Both' | 'Above' | 'Below'
+export type FilterScope  = 'global' | 'local'
 
 export interface FilterRanges {
-  deltaMin: number; deltaMax: number
-  e8kMin: number;   e8kMax: number
-  e8mMin: number;   e8mMax: number
-  bullMin: number;  bullMax: number
-  bearMin: number;  bearMax: number
-  rawMin: number;   rawMax: number
+  deltaMin: number;    deltaMax: number
+  e8kMin: number;      e8kMax: number
+  e8mMin: number;      e8mMax: number
+  bullMin: number;     bullMax: number
+  bearMin: number;     bearMax: number
+  rawMin: number;      rawMax: number
+  dwMin: number;       dwMax: number
+  wcl2k2mMin: number;  wcl2k2mMax: number
 }
 
 export interface FilterState {
@@ -18,11 +20,6 @@ export interface FilterState {
   tradeType: 'All' | 'Long' | 'Short'
   dateFrom: string
   dateTo: string
-
-  ask1050: 'Both' | 'Yes' | 'No'
-  bid950: 'Both' | 'Yes' | 'No'
-  bid1050: 'Both' | 'Yes' | 'No'
-  ask950: 'Both' | 'Yes' | 'No'
 
   // Group 2 — Market structure
   wave2k: WaveFilter
@@ -37,21 +34,22 @@ export interface FilterState {
   entryBB2: VwapFilter
   entryBB3: VwapFilter
 
-  // Group 3 — Volume pressure (imbalance slider only)
+  // Group 3 — Volume pressure
   rawImbalance: number
+  dwSkew: number
 
-  // Group 4 — Numeric ranges (always set to full data range by default)
-  deltaMin: number; deltaMax: number
-  e8kMin: number;   e8kMax: number
-  e8mMin: number;   e8mMax: number
-  bullDSSMin: number; bullDSSMax: number
-  bearDSSMin: number; bearDSSMax: number
+  // Group 4 — Numeric ranges (bounds set from data at load time)
+  deltaMin: number;    deltaMax: number
+  e8kMin: number;      e8kMax: number
+  e8mMin: number;      e8mMax: number
+  bullDSSMin: number;  bullDSSMax: number
+  bearDSSMin: number;  bearDSSMax: number
+  wcl2k2mMin: number;  wcl2k2mMax: number
 
   // Group 5 — Time
   timeBuckets: string[]
 }
 
-// Static defaults — ranges overridden dynamically after data loads
 export const DEFAULT_FILTERS: FilterState = {
   setups: [],
   tradeType: 'All',
@@ -59,18 +57,14 @@ export const DEFAULT_FILTERS: FilterState = {
   wave2k: 'Both', wave2m: 'Both', wave30m: 'Both', wave30s: 'Both',
   entryVwap: 'Both', entryTB1: 'Both', entryTB2: 'Both',
   entryTB3: 'Both', entryBB1: 'Both', entryBB2: 'Both', entryBB3: 'Both',
-
-  ask1050: 'Both',
-  bid950: 'Both',
-  bid1050: 'Both',
-  ask950: 'Both',
-
   rawImbalance: 0,
-  deltaMin: -1,    deltaMax: 1,
-  e8kMin: -200,    e8kMax: 200,
-  e8mMin: -200,    e8mMax: 200,
-  bullDSSMin: 0,   bullDSSMax: 100,
-  bearDSSMin: 0,   bearDSSMax: 100,
+  dwSkew: 0,
+  deltaMin: -1,      deltaMax: 1,
+  e8kMin: -200,      e8kMax: 200,
+  e8mMin: -200,      e8mMax: 200,
+  bullDSSMin: 0,     bullDSSMax: 100,
+  bearDSSMin: 0,     bearDSSMax: 100,
+  wcl2k2mMin: -200,  wcl2k2mMax: 200,
   timeBuckets: [],
 }
 
@@ -85,11 +79,13 @@ export function isDefaultFilters(f: FilterState, ranges: FilterRanges): boolean 
     f.entryTB2 === 'Both' && f.entryTB3 === 'Both' &&
     f.entryBB1 === 'Both' && f.entryBB2 === 'Both' && f.entryBB3 === 'Both' &&
     f.rawImbalance === 0 &&
+    f.dwSkew === 0 &&
     f.deltaMin === ranges.deltaMin && f.deltaMax === ranges.deltaMax &&
-    f.e8kMin === ranges.e8kMin && f.e8kMax === ranges.e8kMax &&
-    f.e8mMin === ranges.e8mMin && f.e8mMax === ranges.e8mMax &&
+    f.e8kMin === ranges.e8kMin     && f.e8kMax === ranges.e8kMax &&
+    f.e8mMin === ranges.e8mMin     && f.e8mMax === ranges.e8mMax &&
     f.bullDSSMin === ranges.bullMin && f.bullDSSMax === ranges.bullMax &&
     f.bearDSSMin === ranges.bearMin && f.bearDSSMax === ranges.bearMax &&
+    f.wcl2k2mMin === ranges.wcl2k2mMin && f.wcl2k2mMax === ranges.wcl2k2mMax &&
     f.timeBuckets.length === 0
   )
 }
