@@ -1,6 +1,8 @@
 'use client'
+import { useState, useEffect, useCallback } from 'react'
 import { useStore } from '@/lib/store'
 import { useRSettings } from '@/lib/useRSettings'
+import { supabase, hasSupabase } from '@/lib/supabase'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -26,9 +28,50 @@ function Field({ label, sub, children }: { label: string; sub?: string; children
   )
 }
 
+type CheckStatus = 'idle' | 'checking' | 'ok' | 'error'
+interface Check { status: CheckStatus; message: string }
+
+function StatusDot({ status }: { status: CheckStatus }) {
+  const color = status === 'ok' ? 'var(--green)' : status === 'error' ? 'var(--red)' : status === 'checking' ? 'var(--amber)' : 'var(--t3)'
+  const label = status === 'ok' ? '●' : status === 'error' ? '●' : status === 'checking' ? '◌' : '○'
+  return <span style={{ color, fontSize: 14, lineHeight: 1 }}>{label}</span>
+}
+
 export default function SettingsPage() {
   const { trades, fileName, clearData } = useStore()
   const { settings: r, update: updateR } = useRSettings()
+
+  const [dbCheck,      setDbCheck]      = useState<Check>({ status: 'idle', message: '' })
+  const [storageCheck, setStorageCheck] = useState<Check>({ status: 'idle', message: '' })
+
+  const runChecks = useCallback(async () => {
+    if (!hasSupabase || !supabase) {
+      setDbCheck({ status: 'error', message: 'No credentials — set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel environment variables.' })
+      setStorageCheck({ status: 'error', message: 'No credentials.' })
+      return
+    }
+
+    setDbCheck({ status: 'checking', message: 'Testing…' })
+    setStorageCheck({ status: 'checking', message: 'Testing…' })
+
+    // Test database: query sessions table
+    const { error: dbErr } = await supabase.from('sessions').select('id').limit(1)
+    if (dbErr) {
+      setDbCheck({ status: 'error', message: dbErr.message })
+    } else {
+      setDbCheck({ status: 'ok', message: 'Connected — sessions table found.' })
+    }
+
+    // Test storage: list setup-screenshots bucket
+    const { error: stErr } = await supabase.storage.from('setup-screenshots').list('', { limit: 1 })
+    if (stErr) {
+      setStorageCheck({ status: 'error', message: stErr.message })
+    } else {
+      setStorageCheck({ status: 'ok', message: 'Connected — setup-screenshots bucket found.' })
+    }
+  }, [])
+
+  useEffect(() => { runChecks() }, [runChecks])
 
   return (
     <div style={{ padding: 20, maxWidth: 600 }}>
@@ -114,6 +157,37 @@ export default function SettingsPage() {
             ${r.mode === 'points' ? (r.value * 2).toFixed(0) : r.value.toFixed(0)}
           </span>
         </Field>
+      </Section>
+
+      <Section title="Supabase">
+        <Field label="Credentials" sub="NEXT_PUBLIC_SUPABASE_URL + ANON_KEY">
+          {hasSupabase
+            ? <span className="badge badge-green">Configured</span>
+            : <span className="badge badge-red">Missing</span>}
+        </Field>
+        <Field label="Database" sub="sessions, trade_tags, setup_notes tables">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <StatusDot status={dbCheck.status} />
+            <span style={{ fontSize: 10, color: dbCheck.status === 'error' ? 'var(--red)' : 'var(--t3)', maxWidth: 280 }}>
+              {dbCheck.message || '—'}
+            </span>
+          </div>
+        </Field>
+        <Field label="Storage" sub="setup-screenshots bucket (screenshots)">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <StatusDot status={storageCheck.status} />
+            <span style={{ fontSize: 10, color: storageCheck.status === 'error' ? 'var(--red)' : 'var(--t3)', maxWidth: 280 }}>
+              {storageCheck.message || '—'}
+            </span>
+          </div>
+        </Field>
+        <div style={{ paddingTop: 10 }}>
+          <button onClick={runChecks} style={{
+            fontSize: 11, padding: '5px 14px', borderRadius: 6,
+            border: '1px solid var(--border2)', background: 'var(--bg3)',
+            color: 'var(--t2)', cursor: 'pointer',
+          }}>Re-test connection</button>
+        </div>
       </Section>
 
       <Section title="About">
