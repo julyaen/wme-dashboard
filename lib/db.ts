@@ -69,9 +69,15 @@ export async function upsertSetupNote(setupName: string, note: string): Promise<
 
 // ── Screenshot helpers ────────────────────────────────────────────────────────
 
-// Compress any image File to a JPEG data URL (max 1200px, quality 0.8).
-// Browser-only: uses canvas API.
+// Files under 500 KB upload as-is. Larger files get resized to 1200px JPEG 0.8.
 export function compressImageFile(file: File): Promise<string> {
+  if (file.size < 500 * 1024) {
+    return new Promise(resolve => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.readAsDataURL(file)
+    })
+  }
   return new Promise(resolve => {
     const img = new Image()
     const url = URL.createObjectURL(file)
@@ -91,11 +97,12 @@ export function compressImageFile(file: File): Promise<string> {
 }
 
 function dataUrlToBlob(dataUrl: string): Blob {
-  const [, base64] = dataUrl.split(',')
+  const [header, base64] = dataUrl.split(',')
+  const mime = header.match(/:(.*?);/)?.[1] ?? 'image/jpeg'
   const binary = atob(base64)
   const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-  return new Blob([bytes], { type: 'image/jpeg' })
+  return new Blob([bytes], { type: mime })
 }
 
 // ── Setup screenshots (Supabase Storage) ─────────────────────────────────────
@@ -108,7 +115,7 @@ function screenshotPath(setupName: string) {
 async function uploadToStorage(path: string, blob: Blob): Promise<{ url: string | null; error: string | null }> {
   const { error } = await supabase!.storage
     .from('setup-screenshots')
-    .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
+    .upload(path, blob, { upsert: true, contentType: blob.type })
   if (error) {
     console.error('[WME] Storage upload error:', error)
     return { url: null, error: error.message }

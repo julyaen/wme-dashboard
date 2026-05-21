@@ -31,6 +31,7 @@ export default function PlaybookPage() {
   const [setupNotes, setSetupNotes] = useState<Record<string, string>>({})
   const [setupScreenshots, setSetupScreenshots] = useState<Record<string, string>>({})
   const [screenshotError, setScreenshotError] = useState<string | null>(null)
+  const [zoomedScreenshot, setZoomedScreenshot] = useState<string | null>(null)
   const screenshotInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -418,13 +419,30 @@ export default function PlaybookPage() {
                 {screenshotError}
               </div>
             )}
+            {zoomedScreenshot && (
+              <div
+                onClick={() => setZoomedScreenshot(null)}
+                style={{
+                  position: 'fixed', inset: 0, zIndex: 9999,
+                  background: 'rgba(0,0,0,0.88)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'zoom-out',
+                }}
+              >
+                <img
+                  src={zoomedScreenshot}
+                  alt="Setup reference"
+                  style={{ maxWidth: '92vw', maxHeight: '92vh', borderRadius: 8, objectFit: 'contain' }}
+                />
+              </div>
+            )}
             {setupScreenshots[activeSetup.name] ? (
               <img
                 src={setupScreenshots[activeSetup.name]}
                 alt={`${activeSetup.name} reference`}
-                style={{ width: '100%', borderRadius: 6, display: 'block' }}
+                onClick={() => setZoomedScreenshot(setupScreenshots[activeSetup.name])}
+                style={{ width: '100%', borderRadius: 6, display: 'block', cursor: 'zoom-in' }}
                 onError={() => {
-                  // File not in storage — clear so upload zone reappears
                   setSetupScreenshots(prev => {
                     const next = { ...prev }
                     delete next[activeSetup.name]
