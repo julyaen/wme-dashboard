@@ -192,46 +192,36 @@ function ScreenshotSection({ tradeId }: { tradeId: string }) {
 
   if (exists && url) {
     return (
-      <>
-        {zoomed && (
-          <div
-            onClick={() => setZoomed(false)}
-            style={{
-              position: 'fixed', inset: 0, zIndex: 9999,
-              background: 'rgba(0,0,0,0.88)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'zoom-out',
-            }}
-          >
-            <img
-              src={url}
-              alt="Trade screenshot"
-              style={{ maxWidth: '92vw', maxHeight: '92vh', borderRadius: 8, objectFit: 'contain' }}
-            />
-          </div>
-        )}
-        <div style={{ position: 'relative' }}>
-          <img
-            src={url}
-            alt="Trade screenshot"
-            onClick={() => setZoomed(true)}
-            style={{ width: '100%', maxHeight: 280, objectFit: 'contain', borderRadius: 6, display: 'block', background: 'var(--bg3)', cursor: 'zoom-in' }}
-          />
-          <button
-            onClick={remove}
-            disabled={uploading}
-            style={{
-              position: 'absolute', top: 6, right: 6,
-              fontSize: 10, padding: '2px 8px', borderRadius: 4,
-              border: '1px solid var(--border)', background: 'var(--bg2)',
-              color: uploading ? 'var(--t3)' : 'var(--red)',
-              cursor: uploading ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {uploading ? '…' : 'Remove'}
-          </button>
-        </div>
-      </>
+      <div style={{ position: 'relative' }}>
+        <img
+          src={url}
+          alt="Trade screenshot"
+          onClick={() => setZoomed(z => !z)}
+          style={{
+            width: '100%',
+            maxHeight: zoomed ? 420 : 90,
+            objectFit: 'contain',
+            borderRadius: 6,
+            display: 'block',
+            background: 'var(--bg3)',
+            cursor: zoomed ? 'zoom-out' : 'zoom-in',
+            transition: 'max-height 0.25s ease',
+          }}
+        />
+        <button
+          onClick={remove}
+          disabled={uploading}
+          style={{
+            position: 'absolute', top: 6, right: 6,
+            fontSize: 10, padding: '2px 8px', borderRadius: 4,
+            border: '1px solid var(--border)', background: 'var(--bg2)',
+            color: uploading ? 'var(--t3)' : 'var(--red)',
+            cursor: uploading ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {uploading ? '…' : 'Remove'}
+        </button>
+      </div>
     )
   }
 

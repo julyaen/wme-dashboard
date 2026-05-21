@@ -419,29 +419,21 @@ export default function PlaybookPage() {
                 {screenshotError}
               </div>
             )}
-            {zoomedScreenshot && (
-              <div
-                onClick={() => setZoomedScreenshot(null)}
-                style={{
-                  position: 'fixed', inset: 0, zIndex: 9999,
-                  background: 'rgba(0,0,0,0.88)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'zoom-out',
-                }}
-              >
-                <img
-                  src={zoomedScreenshot}
-                  alt="Setup reference"
-                  style={{ maxWidth: '92vw', maxHeight: '92vh', borderRadius: 8, objectFit: 'contain' }}
-                />
-              </div>
-            )}
             {setupScreenshots[activeSetup.name] ? (
               <img
                 src={setupScreenshots[activeSetup.name]}
                 alt={`${activeSetup.name} reference`}
-                onClick={() => setZoomedScreenshot(setupScreenshots[activeSetup.name])}
-                style={{ width: '100%', borderRadius: 6, display: 'block', cursor: 'zoom-in' }}
+                onClick={() => setZoomedScreenshot(z => z === activeSetup.name ? null : activeSetup.name)}
+                style={{
+                  width: '100%',
+                  maxHeight: zoomedScreenshot === activeSetup.name ? 500 : 90,
+                  objectFit: 'contain',
+                  borderRadius: 6,
+                  display: 'block',
+                  background: 'var(--bg2)',
+                  cursor: zoomedScreenshot === activeSetup.name ? 'zoom-out' : 'zoom-in',
+                  transition: 'max-height 0.25s ease',
+                }}
                 onError={() => {
                   setSetupScreenshots(prev => {
                     const next = { ...prev }
