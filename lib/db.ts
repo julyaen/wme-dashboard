@@ -17,17 +17,50 @@ export async function saveSession(fileName: string, trades: Trade[]): Promise<vo
   if (error) console.error('[WME] saveSession error:', error.message, error.code)
 }
 
-export async function loadLatestSession(): Promise<{ fileName: string; trades: Trade[] } | null> {
+export async function loadLatestSession(): Promise<{ id: string; fileName: string; trades: Trade[] } | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from('sessions')
-    .select('file_name, trades')
+    .select('id, file_name, trades')
     .order('imported_at', { ascending: false })
     .limit(1)
     .maybeSingle()
   if (error) console.error('[WME] loadLatestSession error:', error.message, error.code)
   if (!data) return null
-  return { fileName: data.file_name, trades: data.trades as Trade[] }
+  return { id: data.id, fileName: data.file_name, trades: data.trades as Trade[] }
+}
+
+// Merge new trades into the latest Supabase session, skipping duplicates.
+// Deduplication key: Entry DateTime + Entry Price + Trade Type.
+// Returns { merged, added } — added is the count of genuinely new trades.
+export async function mergeIntoLatestSession(
+  newTrades: Trade[]
+): Promise<{ merged: Trade[]; added: number }> {
+  if (!supabase) return { merged: newTrades, added: newTrades.length }
+
+  const existing = await loadLatestSession()
+  if (!existing || existing.trades.length === 0) {
+    return { merged: newTrades, added: newTrades.length }
+  }
+
+  const fp = (t: Trade) => `${t['Entry DateTime']}|${t['Entry Price']}|${t['Trade Type']}`
+  const seen = new Set(existing.trades.map(fp))
+  const uniqueNew = newTrades.filter(t => !seen.has(fp(t)))
+
+  if (uniqueNew.length === 0) return { merged: existing.trades, added: 0 }
+
+  const offset = existing.trades.length
+  const merged = [
+    ...existing.trades,
+    ...uniqueNew.map((t, i) => ({ ...t, id: String(offset + i) })),
+  ]
+
+  const { error } = await supabase
+    .from('sessions')
+    .upsert({ id: existing.id, file_name: existing.fileName, trades: merged })
+  if (error) console.error('[WME] mergeIntoLatestSession error:', error.message)
+
+  return { merged, added: uniqueNew.length }
 }
 
 // ── Tags ──────────────────────────────────────────────────────────────────────

@@ -291,12 +291,21 @@ export default function ImportPage() {
         </div>
       )}
 
-      {error && trades.length > 0 && (
-        <div className="card" style={{ marginTop: 12, borderColor: 'rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.06)' }}>
-          <div style={{ color: 'var(--amber)', fontSize: 12, fontWeight: 500, marginBottom: 4 }}>⚠ Loaded with warnings</div>
-          <div style={{ color: 'var(--amber)', fontSize: 11, whiteSpace: 'pre-wrap' }}>{error}</div>
-        </div>
-      )}
+      {error && trades.length > 0 && (() => {
+        const isMerge = /^\d+ new trade|^No new trades/.test(error)
+        return (
+          <div className="card" style={{
+            marginTop: 12,
+            borderColor: isMerge ? 'rgba(34,197,94,0.3)' : 'rgba(245,158,11,0.3)',
+            background: isMerge ? 'rgba(34,197,94,0.06)' : 'rgba(245,158,11,0.06)',
+          }}>
+            <div style={{ color: isMerge ? 'var(--green)' : 'var(--amber)', fontSize: 12, fontWeight: 500, marginBottom: 4 }}>
+              {isMerge ? '✓ Merge complete' : '⚠ Loaded with warnings'}
+            </div>
+            <div style={{ color: isMerge ? 'var(--green)' : 'var(--amber)', fontSize: 11, whiteSpace: 'pre-wrap' }}>{error}</div>
+          </div>
+        )
+      })()}
 
       {trades.length > 0 && !loading && (
         <div className="card" style={{ marginTop: 12 }}>

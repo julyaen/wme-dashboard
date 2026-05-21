@@ -7,7 +7,7 @@ import { parseXLSX, computeStats, computeRanges } from '@/lib/parser'
 import { normalizeFromRaw } from '@/lib/normalizer'
 import type { NormalizeResult } from '@/lib/normalizer'
 import { applyFilters } from '@/lib/filters'
-import { saveSession, loadLatestSession, loadAllTags, upsertTag } from '@/lib/db'
+import { saveSession, loadLatestSession, loadAllTags, upsertTag, mergeIntoLatestSession } from '@/lib/db'
 
 function makeDefaultFilters(r: FilterRanges): FilterState {
   return {
@@ -147,20 +147,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const loadFromRaw = useCallback((marketBuffer: ArrayBuffer, tradeBuffer: ArrayBuffer, name: string) => {
+  const loadFromRaw = useCallback(async (marketBuffer: ArrayBuffer, tradeBuffer: ArrayBuffer, name: string) => {
     setLoading(true)
     setError(null)
     try {
       const { trades: parsed, warnings }: NormalizeResult = normalizeFromRaw(marketBuffer, tradeBuffer)
-      const r        = computeRanges(parsed)
+      const { merged, added } = await mergeIntoLatestSession(parsed)
+      const r        = computeRanges(merged)
       const defaults = makeDefaultFilters(r)
-      setTrades(parsed)
+      setTrades(merged)
       setRanges(r)
       setFileName(name)
       setGlobalFilters(defaults)
       setLocalFilters(defaults)
-      saveSession(name, parsed)
-      if (warnings.length) setError(warnings.join('\n'))
+      const mergeMsg = added > 0 ? `${added} new trade${added === 1 ? '' : 's'} added — ${merged.length} total.` : 'No new trades found — all already in your dataset.'
+      if (warnings.length) setError([mergeMsg, ...warnings].join('\n'))
+      else setError(mergeMsg)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Normalizer error')
     } finally {
