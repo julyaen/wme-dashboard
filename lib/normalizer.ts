@@ -445,8 +445,20 @@ export function normalizeFromRaw(
     if (dt) tradeDates.add(dt.slice(0, 10))
   }
 
-  // 4. Check date overlap before attempting join
-  const overlapping = [...tradeDates].filter(d => marketDates.has(d))
+  // Helper: subtract one calendar day
+  function prevCalDate(d: string): string {
+    const dt = new Date(d); dt.setDate(dt.getDate() - 1)
+    return dt.toISOString().slice(0, 10)
+  }
+
+  // 4. Check date overlap — extend market dates by +1 day to handle evening session
+  // trades (Sierra Chart logs e.g. a 20:08 trade on May 20 under May 21).
+  const marketDatesExtended = new Set([...marketDates])
+  for (const d of marketDates) {
+    const next = new Date(d); next.setDate(next.getDate() + 1)
+    marketDatesExtended.add(next.toISOString().slice(0, 10))
+  }
+  const overlapping = [...tradeDates].filter(d => marketDatesExtended.has(d))
   if (!overlapping.length) throw new Error(
     `Date mismatch — the two files cover different date ranges and share no trading days.\n\n` +
     `Market data:    ${fmtDateRange([...marketDates])}\n` +
@@ -455,7 +467,9 @@ export function normalizeFromRaw(
     `reload wme_fasterV2.txt with live/current data before importing.`
   )
 
-  // 5. Join each trade to its closest bar on the same date
+  // 5. Join each trade to its closest bar on the same date.
+  // Fallback: if no bars on the trade date (evening session trade logged under next
+  // calendar day by Sierra Chart), try the previous calendar date's bars.
   const result:   Trade[]  = []
   const warnings: string[] = []
   let   skipped            = 0
@@ -467,7 +481,7 @@ export function normalizeFromRaw(
       if (!entryDt) return
 
       const dateKey = entryDt.slice(0, 10)
-      const dayBars = barsByDate.get(dateKey)
+      const dayBars = barsByDate.get(dateKey) ?? barsByDate.get(prevCalDate(dateKey))
       if (!dayBars?.length) { skipped++; return }
 
       // Find bar closest in time to entry
