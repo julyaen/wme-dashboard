@@ -239,48 +239,52 @@ export default function AnalyticsPage() {
 
       {/* Setup + Time bucket */}
       <div className="g2">
-        <div className="card">
+        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="card-title">Setup performance</div>
-          {s.setupStats.map(ss => (
-            <div key={ss.name} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', borderBottom: '1px solid var(--border)' }}>
-              <span style={{ fontSize: 10, color: 'var(--t1)', width: 160, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ss.name}</span>
-              <span style={{ fontSize: 9, color: 'var(--t3)', width: 20 }}>{ss.trades}T</span>
-              <div style={{ flex: 1, height: 5, background: 'var(--bg3)', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${ss.winRate}%`,
-                  background: ss.winRate >= 60 ? 'var(--green)' : ss.winRate >= 45 ? 'var(--amber)' : 'var(--red)' }} />
+          <div style={{ overflowY: 'auto', maxHeight: 340 }}>
+            {s.setupStats.map(ss => (
+              <div key={ss.name} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', borderBottom: '1px solid var(--border)' }}>
+                <span style={{ fontSize: 10, color: 'var(--t1)', width: 160, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ss.name}</span>
+                <span style={{ fontSize: 9, color: 'var(--t3)', width: 20 }}>{ss.trades}T</span>
+                <div style={{ flex: 1, height: 5, background: 'var(--bg3)', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${ss.winRate}%`,
+                    background: ss.winRate >= 60 ? 'var(--green)' : ss.winRate >= 45 ? 'var(--amber)' : 'var(--red)' }} />
+                </div>
+                <span style={{ fontSize: 10, width: 34, textAlign: 'right',
+                  color: ss.winRate >= 60 ? 'var(--green)' : ss.winRate >= 45 ? 'var(--amber)' : 'var(--red)' }}>{ss.winRate}%</span>
+                <span style={{ fontSize: 10, width: 52, textAlign: 'right', fontFamily: 'monospace' }}
+                  className={ss.netPnL >= 0 ? 'pos' : 'neg'}>
+                  {ss.netPnL >= 0 ? '+' : ''}${ss.netPnL.toFixed(0)}
+                </span>
               </div>
-              <span style={{ fontSize: 10, width: 34, textAlign: 'right',
-                color: ss.winRate >= 60 ? 'var(--green)' : ss.winRate >= 45 ? 'var(--amber)' : 'var(--red)' }}>{ss.winRate}%</span>
-              <span style={{ fontSize: 10, width: 52, textAlign: 'right', fontFamily: 'monospace' }}
-                className={ss.netPnL >= 0 ? 'pos' : 'neg'}>
-                {ss.netPnL >= 0 ? '+' : ''}${ss.netPnL.toFixed(0)}
-              </span>
-            </div>
-          ))}
+            ))}
+          </div>
           <div className="insight" style={{ marginTop: 10 }}>
             <strong style={{ color: 'var(--amber)' }}>Edge: </strong>
             {s.setupStats[0]?.name} leads with {s.setupStats[0]?.winRate}% WR on {s.setupStats[0]?.trades} trades.
           </div>
         </div>
 
-        <div className="card">
+        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="card-title">Time bucket performance</div>
-          {s.timeBuckets.filter(b => b.trades > 0).map(tb => (
-            <div key={tb.bucket} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', borderBottom: '1px solid var(--border)' }}>
-              <span style={{ fontSize: 10, color: 'var(--t2)', width: 80, flexShrink: 0 }}>{tb.bucket}</span>
-              <span style={{ fontSize: 9, color: 'var(--t3)', width: 20 }}>{tb.trades}T</span>
-              <div style={{ flex: 1, height: 5, background: 'var(--bg3)', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${tb.winRate}%`,
-                  background: tb.winRate >= 65 ? 'var(--green)' : tb.winRate >= 45 ? 'var(--amber)' : 'var(--red)' }} />
+          <div style={{ overflowY: 'auto', maxHeight: 340 }}>
+            {s.timeBuckets.filter(b => b.trades > 0).map(tb => (
+              <div key={tb.bucket} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', borderBottom: '1px solid var(--border)' }}>
+                <span style={{ fontSize: 10, color: 'var(--t2)', width: 80, flexShrink: 0 }}>{tb.bucket}</span>
+                <span style={{ fontSize: 9, color: 'var(--t3)', width: 20 }}>{tb.trades}T</span>
+                <div style={{ flex: 1, height: 5, background: 'var(--bg3)', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${tb.winRate}%`,
+                    background: tb.winRate >= 65 ? 'var(--green)' : tb.winRate >= 45 ? 'var(--amber)' : 'var(--red)' }} />
+                </div>
+                <span style={{ fontSize: 10, width: 34, textAlign: 'right',
+                  color: tb.winRate >= 65 ? 'var(--green)' : tb.winRate >= 45 ? 'var(--amber)' : 'var(--red)' }}>{tb.winRate}%</span>
+                <span style={{ fontSize: 10, width: 52, textAlign: 'right', fontFamily: 'monospace' }}
+                  className={tb.netPnL >= 0 ? 'pos' : 'neg'}>
+                  {tb.netPnL >= 0 ? '+' : ''}${tb.netPnL.toFixed(0)}
+                </span>
               </div>
-              <span style={{ fontSize: 10, width: 34, textAlign: 'right',
-                color: tb.winRate >= 65 ? 'var(--green)' : tb.winRate >= 45 ? 'var(--amber)' : 'var(--red)' }}>{tb.winRate}%</span>
-              <span style={{ fontSize: 10, width: 52, textAlign: 'right', fontFamily: 'monospace' }}
-                className={tb.netPnL >= 0 ? 'pos' : 'neg'}>
-                {tb.netPnL >= 0 ? '+' : ''}${tb.netPnL.toFixed(0)}
-              </span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
