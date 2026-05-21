@@ -219,7 +219,42 @@ export default function PlaybookPage() {
 
       {/* RIGHT — setup detail */}
       {activeSetup && (
-        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+
+        {/* Floating image card */}
+        {zoomedScreenshot && (
+          <div style={{
+            position: 'absolute', inset: '5%', zIndex: 20,
+            background: 'var(--bg1)',
+            border: '1px solid var(--border2)',
+            borderRadius: 10,
+            boxShadow: '0 12px 48px rgba(0,0,0,0.7)',
+            display: 'flex', flexDirection: 'column',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '10px 14px', borderBottom: '1px solid var(--border)', flexShrink: 0,
+            }}>
+              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--t2)' }}>{activeSetup.name} — Reference</span>
+              <button onClick={() => setZoomedScreenshot(null)} style={{
+                fontSize: 15, padding: '1px 7px', borderRadius: 5,
+                border: '1px solid var(--border)', background: 'var(--bg3)',
+                color: 'var(--t2)', cursor: 'pointer', lineHeight: 1.4,
+              }}>✕</button>
+            </div>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14, overflow: 'hidden' }}>
+              <img
+                src={setupScreenshots[activeSetup.name]}
+                alt={`${activeSetup.name} reference`}
+                style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 6, objectFit: 'contain' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Scrollable content */}
+        <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, padding: 0 }}>
 
           {/* Header */}
           <div className="card" style={{ padding: '12px 16px' }}>
@@ -423,16 +458,10 @@ export default function PlaybookPage() {
               <img
                 src={setupScreenshots[activeSetup.name]}
                 alt={`${activeSetup.name} reference`}
-                onClick={() => setZoomedScreenshot(z => z === activeSetup.name ? null : activeSetup.name)}
+                onClick={() => setZoomedScreenshot(activeSetup.name)}
                 style={{
-                  width: '100%',
-                  maxHeight: zoomedScreenshot === activeSetup.name ? 500 : 90,
-                  objectFit: 'contain',
-                  borderRadius: 6,
-                  display: 'block',
-                  background: 'var(--bg2)',
-                  cursor: zoomedScreenshot === activeSetup.name ? 'zoom-out' : 'zoom-in',
-                  transition: 'max-height 0.25s ease',
+                  width: '100%', borderRadius: 6, display: 'block',
+                  background: 'var(--bg2)', cursor: 'pointer',
                 }}
                 onError={() => {
                   setSetupScreenshots(prev => {
@@ -468,6 +497,7 @@ export default function PlaybookPage() {
             )}
           </div>
 
+        </div>
         </div>
       )}
     </div>

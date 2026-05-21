@@ -170,11 +170,10 @@ function TagSection({ tradeId }: { tradeId: string }) {
   )
 }
 
-function ScreenshotSection({ tradeId }: { tradeId: string }) {
+function ScreenshotSection({ tradeId, onExpand }: { tradeId: string; onExpand: (url: string) => void }) {
   const { exists, url, loading, uploading, error, upload, remove } = useScreenshot(tradeId)
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
-  const [zoomed, setZoomed] = useState(false)
 
   const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return
@@ -196,16 +195,11 @@ function ScreenshotSection({ tradeId }: { tradeId: string }) {
         <img
           src={url}
           alt="Trade screenshot"
-          onClick={() => setZoomed(z => !z)}
+          onClick={() => onExpand(url)}
           style={{
-            width: '100%',
-            maxHeight: zoomed ? 420 : 90,
-            objectFit: 'contain',
-            borderRadius: 6,
-            display: 'block',
-            background: 'var(--bg3)',
-            cursor: zoomed ? 'zoom-out' : 'zoom-in',
-            transition: 'max-height 0.25s ease',
+            width: '100%', maxHeight: 280, objectFit: 'contain',
+            borderRadius: 6, display: 'block', background: 'var(--bg3)',
+            cursor: 'pointer',
           }}
         />
         <button
@@ -262,6 +256,7 @@ function ScreenshotSection({ tradeId }: { tradeId: string }) {
 export default function TradeModal({ trade: t, onClose }: Props) {
   const win = t['Net PnL'] > 0
   const { note, save, saved } = useTradeNote(t.id)
+  const [expandedImg, setExpandedImg] = useState<string | null>(null)
 
   return (
     <>
@@ -271,16 +266,55 @@ export default function TradeModal({ trade: t, onClose }: Props) {
         background: 'rgba(0,0,0,0.6)',
       }} />
 
-      {/* Modal */}
+      {/* Modal outer — no overflow so floating card isn't clipped */}
       <div style={{
         position: 'fixed', top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
         zIndex: 70,
         width: 720, maxHeight: '88vh',
+        borderRadius: 12,
+        overflow: 'hidden',
+      }}>
+
+      {/* Floating image card — 90% of modal, sits above scrollable content */}
+      {expandedImg && (
+        <div style={{
+          position: 'absolute', inset: '5%', zIndex: 20,
+          background: 'var(--bg1)',
+          border: '1px solid var(--border2)',
+          borderRadius: 10,
+          boxShadow: '0 12px 48px rgba(0,0,0,0.7)',
+          display: 'flex', flexDirection: 'column',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '10px 14px', borderBottom: '1px solid var(--border)', flexShrink: 0,
+          }}>
+            <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--t2)' }}>Screenshot</span>
+            <button onClick={() => setExpandedImg(null)} style={{
+              fontSize: 15, padding: '1px 7px', borderRadius: 5,
+              border: '1px solid var(--border)', background: 'var(--bg3)',
+              color: 'var(--t2)', cursor: 'pointer', lineHeight: 1.4,
+            }}>✕</button>
+          </div>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14, overflow: 'hidden' }}>
+            <img
+              src={expandedImg}
+              alt="Trade screenshot"
+              style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 6, objectFit: 'contain' }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Scrollable inner */}
+      <div style={{
         background: 'var(--bg1)',
         border: '1px solid var(--border2)',
         borderRadius: 12,
         overflowY: 'auto',
+        maxHeight: '88vh',
         display: 'flex', flexDirection: 'column',
       }}>
 
@@ -465,11 +499,12 @@ export default function TradeModal({ trade: t, onClose }: Props) {
             </Section>
 
             <Section title="Screenshot">
-              <ScreenshotSection tradeId={t.id} />
+              <ScreenshotSection tradeId={t.id} onExpand={setExpandedImg} />
             </Section>
           </div>
         </div>
-      </div>
+      </div>{/* end scrollable inner */}
+      </div>{/* end modal outer */}
     </>
   )
 }
