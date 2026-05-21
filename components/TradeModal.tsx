@@ -171,7 +171,7 @@ function TagSection({ tradeId }: { tradeId: string }) {
 }
 
 function ScreenshotSection({ tradeId }: { tradeId: string }) {
-  const { exists, base64, mime, loading, uploading, error, upload, remove } = useScreenshot(tradeId)
+  const { exists, url, loading, uploading, error, upload, remove } = useScreenshot(tradeId)
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
 
@@ -189,11 +189,11 @@ function ScreenshotSection({ tradeId }: { tradeId: string }) {
     )
   }
 
-  if (exists && base64 && mime) {
+  if (exists && url) {
     return (
       <div style={{ position: 'relative' }}>
         <img
-          src={`data:${mime};base64,${base64}`}
+          src={url}
           alt="Trade screenshot"
           style={{ width: '100%', maxHeight: 280, objectFit: 'contain', borderRadius: 6, display: 'block', background: 'var(--bg3)' }}
         />

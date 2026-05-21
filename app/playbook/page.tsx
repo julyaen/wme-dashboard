@@ -3,6 +3,7 @@ import { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import {
   loadAllSetupNotes, upsertSetupNote,
   uploadSetupScreenshot, deleteSetupScreenshot, getSetupScreenshotPublicUrl,
+  compressImageFile,
 } from '@/lib/db'
 import { hasSupabase } from '@/lib/supabase'
 import { useStore } from '@/lib/store'
@@ -20,26 +21,6 @@ function StatBox({ label, value, color }: { label: string; value: string; color?
       <div style={{ fontSize: 16, fontWeight: 500, color: color ?? 'var(--t1)' }}>{value}</div>
     </div>
   )
-}
-
-// Compress image to max 1200px JPEG 0.8 before storing as base64
-function compressImage(file: File): Promise<string> {
-  return new Promise(resolve => {
-    const img = new Image()
-    const url = URL.createObjectURL(file)
-    img.onload = () => {
-      const MAX = 1200
-      let w = img.width, h = img.height
-      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX }
-      if (h > MAX) { w = Math.round(w * MAX / h); h = MAX }
-      const canvas = document.createElement('canvas')
-      canvas.width = w; canvas.height = h
-      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
-      URL.revokeObjectURL(url)
-      resolve(canvas.toDataURL('image/jpeg', 0.8))
-    }
-    img.src = url
-  })
 }
 
 export default function PlaybookPage() {
@@ -468,7 +449,7 @@ export default function PlaybookPage() {
                   onChange={async e => {
                     const file = e.target.files?.[0]
                     if (!file) return
-                    const dataUrl = await compressImage(file)
+                    const dataUrl = await compressImageFile(file)
                     saveScreenshot(activeSetup.name, dataUrl)
                     if (screenshotInputRef.current) screenshotInputRef.current.value = ''
                   }}

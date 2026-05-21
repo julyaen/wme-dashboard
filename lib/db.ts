@@ -67,12 +67,54 @@ export async function upsertSetupNote(setupName: string, note: string): Promise<
   await supabase.from('setup_notes').upsert({ setup_name: setupName, note })
 }
 
+// ── Screenshot helpers ────────────────────────────────────────────────────────
+
+// Compress any image File to a JPEG data URL (max 1200px, quality 0.8).
+// Browser-only: uses canvas API.
+export function compressImageFile(file: File): Promise<string> {
+  return new Promise(resolve => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const MAX = 1200
+      let w = img.width, h = img.height
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX }
+      if (h > MAX) { w = Math.round(w * MAX / h); h = MAX }
+      const canvas = document.createElement('canvas')
+      canvas.width = w; canvas.height = h
+      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+      URL.revokeObjectURL(url)
+      resolve(canvas.toDataURL('image/jpeg', 0.8))
+    }
+    img.src = url
+  })
+}
+
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [, base64] = dataUrl.split(',')
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  return new Blob([bytes], { type: 'image/jpeg' })
+}
+
 // ── Setup screenshots (Supabase Storage) ─────────────────────────────────────
-// Stores compressed JPEG in the `setup-screenshots` bucket.
-// Returns the public URL on upload, null on failure.
+// Bucket: setup-screenshots  |  path: {setupName}.jpg
 
 function screenshotPath(setupName: string) {
   return `${setupName.replace(/[^a-zA-Z0-9]/g, '_')}.jpg`
+}
+
+async function uploadToStorage(path: string, blob: Blob): Promise<{ url: string | null; error: string | null }> {
+  const { error } = await supabase!.storage
+    .from('setup-screenshots')
+    .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
+  if (error) {
+    console.error('[WME] Storage upload error:', error)
+    return { url: null, error: error.message }
+  }
+  const { data } = supabase!.storage.from('setup-screenshots').getPublicUrl(path)
+  return { url: data.publicUrl, error: null }
 }
 
 export async function uploadSetupScreenshot(
@@ -80,24 +122,34 @@ export async function uploadSetupScreenshot(
   dataUrl: string
 ): Promise<{ url: string | null; error: string | null }> {
   if (!supabase) return { url: null, error: 'Supabase not configured' }
-  const [, base64] = dataUrl.split(',')
-  const binary = atob(base64)
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-  const blob = new Blob([bytes], { type: 'image/jpeg' })
+  return uploadToStorage(screenshotPath(setupName), dataUrlToBlob(dataUrl))
+}
 
-  const { error } = await supabase.storage
-    .from('setup-screenshots')
-    .upload(screenshotPath(setupName), blob, { upsert: true, contentType: 'image/jpeg' })
-  if (error) {
-    console.error('[WME] Screenshot upload error:', error)
-    return { url: null, error: error.message }
-  }
+// ── Trade screenshots (Supabase Storage) ─────────────────────────────────────
+// Bucket: setup-screenshots  |  path: trades/{tradeId}.jpg
 
-  const { data } = supabase.storage
-    .from('setup-screenshots')
-    .getPublicUrl(screenshotPath(setupName))
-  return { url: data.publicUrl, error: null }
+function tradeScreenshotPath(tradeId: string) {
+  return `trades/${tradeId.replace(/[^a-zA-Z0-9]/g, '_')}.jpg`
+}
+
+export async function uploadTradeScreenshot(
+  tradeId: string,
+  file: File
+): Promise<{ url: string | null; error: string | null }> {
+  if (!supabase) return { url: null, error: 'Supabase not configured' }
+  const dataUrl = await compressImageFile(file)
+  return uploadToStorage(tradeScreenshotPath(tradeId), dataUrlToBlob(dataUrl))
+}
+
+export function getTradeScreenshotUrl(tradeId: string): string | null {
+  if (!supabase) return null
+  const { data } = supabase.storage.from('setup-screenshots').getPublicUrl(tradeScreenshotPath(tradeId))
+  return data.publicUrl
+}
+
+export async function deleteTradeScreenshot(tradeId: string): Promise<void> {
+  if (!supabase) return
+  await supabase.storage.from('setup-screenshots').remove([tradeScreenshotPath(tradeId)])
 }
 
 export async function deleteSetupScreenshot(setupName: string): Promise<void> {
