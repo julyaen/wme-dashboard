@@ -111,10 +111,10 @@ function extractMarket(r: Record<string, unknown>): MarketBar {
     '2kEMA8 vs 2kWCL': n('2kEMA8 vs 2kWCL'),
     '2kEMA8 vs 2mWCL': n('2kEMA8 vs 2mWCL'),
     '2kWCL vs 2mWCL': n('2kWCL vs 2mWCL'),
+    '2kWave': wave('2kWave'),
     '30mWave': wave('30mWave'),
     '2mWave': wave('2mWave'),
     '30sWave': wave('30sWave'),
-    '2kWave': wave('2kWave'),
     'RawASK-BID': n('RawASK-BID'),
     RawAsk: n('RawAsk'), RawBid: n('RawBid'),
     'Net DWSkew': n('Net DWSkew'),
@@ -128,6 +128,12 @@ function extractMarket(r: Record<string, unknown>): MarketBar {
     ATR:      n('ATR'),
     IBHigh:   n('IBHigh'),
     IBLow:    n('IBLow'),
+    // EdgeBase fields — not present in normalized XLSX, default to 0
+    Daily_POC: n('Daily_POC'), Daily_VAH: n('Daily_VAH'), Daily_VAL: n('Daily_VAL'),
+    poc30m: n('poc30m'), vah30m: n('vah30m'), val30m: n('val30m'),
+    LH_Hi: n('LH_Hi'), LH_Lo: n('LH_Lo'),
+    CVDOpen: n('CVDOpen'), CVDHigh: n('CVDHigh'), CVDLow: n('CVDLow'), CVDClose: n('CVDClose'),
+    Delta: n('Delta'),
   }
 }
 

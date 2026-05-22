@@ -2,8 +2,33 @@ import * as XLSX from 'xlsx'
 import type { Trade, MarketBar } from '@/types'
 
 // ─── Sierra Chart column renames ──────────────────────────────────────────────
+// Covers both wme_fasterV2 (legacy) and EdgeBase format.
+// EdgeBase uses new column names for the same concepts — remap them to the
+// canonical names used throughout the analytics engine so downstream code
+// never has to care which format was uploaded.
 const SC_RENAME: Record<string, string> = {
   'Close': 'Last',
+  // EdgeBase wave channel → canonical wave names
+  'WaveTopLine':    '2kNL',
+  'WaveBottomLine': '2kFL',
+  'WaveDynamicLine':'EMA8',        // 2kEMA8
+  'WaveBID':        'wBID',
+  'WaveASK':        'wASK',
+  // EdgeBase VWAP bands → canonical band names
+  '1sigma':         'TB1',
+  '-1sigma':        'BB1',
+  '2sigma':         'TB2',
+  '-2sigma':        'BB2',
+  // EdgeBase IB levels → canonical names
+  'IB_Hi':          'IBHigh',
+  'IB_Lo':          'IBLow',
+  // EdgeBase DW → canonical names
+  'dwBID':          'DWbid',
+  'dwASK':          'DWask',
+  // EdgeBase 30m VP → canonical names
+  '30mPOC':         'poc30m',
+  '30mVAH':         'vah30m',
+  '30mVAL':         'val30m',
 }
 
 // ─── Columns to drop entirely from market data ────────────────────────────────
@@ -145,6 +170,17 @@ function computeDerived(row: RawRow): RawRow {
   r['30m CentreLine'] = (n(r['30mFL']) + n(r['30mNL'])) / 2
   r['2mCL']           = (n(r['2mFL'])  + n(r['2mNL']))  / 2
 
+  // EdgeBase does not export VWAP directly — derive from symmetric bands.
+  // TB1 (1sigma) and BB1 (-1sigma) are equidistant from VWAP by definition.
+  if (!n(r['VWAP']) && n(r['TB1']) && n(r['BB1'])) {
+    r['VWAP'] = (n(r['TB1']) + n(r['BB1'])) / 2
+  }
+
+  // EdgeBase does not have 2kWCL — approximate as midpoint of the wave channel.
+  if (!n(r['2kWCL']) && (n(r['2kNL']) || n(r['2kFL']))) {
+    r['2kWCL'] = (n(r['2kNL']) + n(r['2kFL'])) / 2
+  }
+
   // VWAP midpoint
   r['vwap_TB1'] = (n(r['VWAP']) + n(r['TB1'])) / 2
 
@@ -178,11 +214,12 @@ function computeDerived(row: RawRow): RawRow {
   r['E8_2kCL']         = ema8 - wcl2k
   r['E8_2mCL']         = ema8 - cl2m
 
-  // Wave states
-  r['30mWave'] = n(r['30mNL']) > n(r['30mFL']) ? 'Green' : 'Red'
-  r['2mWave']  = n(r['2mNL'])  > n(r['2mFL'])  ? 'Green' : 'Red'
-  r['30sWave'] = n(r['30sNL']) > n(r['30sFL']) ? 'Green' : 'Red'
-  r['2kWave']  = n(r['2kNL'])  > n(r['2kFL'])  ? 'Green' : 'Red'
+  // Wave states — 2kWave always available (EdgeBase provides WaveTop/Bottom → 2kNL/2kFL)
+  r['2kWave'] = n(r['2kNL']) > n(r['2kFL']) ? 'Green' : 'Red'
+  // 2m/30m/30s only exist in the old wme_fasterV2 format; omit for EdgeBase data
+  if (n(r['2mNL']) || n(r['2mFL']))   r['2mWave']  = n(r['2mNL'])  > n(r['2mFL'])  ? 'Green' : 'Red'
+  if (n(r['30mNL']) || n(r['30mFL'])) r['30mWave'] = n(r['30mNL']) > n(r['30mFL']) ? 'Green' : 'Red'
+  if (n(r['30sNL']) || n(r['30sFL'])) r['30sWave'] = n(r['30sNL']) > n(r['30sFL']) ? 'Green' : 'Red'
 
   // Price inside 2m Wave
   r['LowInside2mWave']  = (low  > n(r['2mFL']) && low  < n(r['2mNL'])) ? 1 : 0
@@ -244,6 +281,9 @@ function entryVsBands(ep: number, bar: RawRow): Record<string, string> {
 // ─── Build a MarketBar from a computed bar row ────────────────────────────────
 function toMarketBar(bar: RawRow): MarketBar {
   const wave = (k: string): 'Green' | 'Red' => bar[k] === 'Green' ? 'Green' : 'Red'
+  const optWave = (k: string): 'Green' | 'Red' | undefined =>
+    bar[k] === 'Green' ? 'Green' : bar[k] === 'Red' ? 'Red' : undefined
+
   return {
     Date:                  String(bar['Date'] ?? ''),
     Time:                  String(bar['Time'] ?? ''),
@@ -285,10 +325,10 @@ function toMarketBar(bar: RawRow): MarketBar {
     '2kEMA8 vs 2kWCL':     n(bar['2kEMA8 vs 2kWCL']),
     '2kEMA8 vs 2mWCL':     n(bar['2kEMA8 vs 2mWCL']),
     '2kWCL vs 2mWCL':      n(bar['2kWCL vs 2mWCL']),
-    '30mWave':             wave('30mWave'),
-    '2mWave':              wave('2mWave'),
-    '30sWave':             wave('30sWave'),
     '2kWave':              wave('2kWave'),
+    '30mWave':             optWave('30mWave'),
+    '2mWave':              optWave('2mWave'),
+    '30sWave':             optWave('30sWave'),
     'RawASK-BID':          n(bar['RawASK-BID']),
     RawAsk:                n(bar['RawAsk']),
     RawBid:                n(bar['RawBid']),
@@ -308,6 +348,20 @@ function toMarketBar(bar: RawRow): MarketBar {
     ATR:                   n(bar['ATR']),
     IBHigh:                n(bar['IBHigh']),
     IBLow:                 n(bar['IBLow']),
+    // ── EdgeBase fields ───────────────────────────────────────────────────────
+    Daily_POC:  n(bar['Daily_POC']),
+    Daily_VAH:  n(bar['Daily_VAH']),
+    Daily_VAL:  n(bar['Daily_VAL']),
+    poc30m:     n(bar['poc30m']),
+    vah30m:     n(bar['vah30m']),
+    val30m:     n(bar['val30m']),
+    LH_Hi:      n(bar['LH_Hi']),
+    LH_Lo:      n(bar['LH_Lo']),
+    CVDOpen:    n(bar['CVDOpen']),
+    CVDHigh:    n(bar['CVDHigh']),
+    CVDLow:     n(bar['CVDLow']),
+    CVDClose:   n(bar['CVDClose']),
+    Delta:      n(bar['Delta']) || n(bar['Ask Volume']) - n(bar['Bid Volume']),
   }
 }
 
@@ -396,17 +450,21 @@ export function normalizeFromRaw(
   // 1. Parse and compute market bars
   const rawBars = parseTxt(marketBuffer)
   if (!rawBars.length) throw new Error(
-    'Market data file (wme_fasterV2.txt) is empty or could not be parsed.\n' +
-    'Make sure you are uploading the correct Sierra Chart bar export.'
+    'Market data file is empty or could not be parsed.\n' +
+    'Expected a Sierra Chart bar export (wme_fasterV2.txt or EdgeBase_1m.txt / EdgeBase_10seconds.txt).'
   )
 
-  // Validate required market columns
-  const requiredMarket = ['Date', 'Time', 'Bid Volume', 'Ask Volume', 'EMA8', '2kFL', '2kNL', 'VWAP']
+  // Validate required market columns.
+  // After SC_RENAME, both wme_fasterV2 and EdgeBase files share the same canonical names.
+  const requiredMarket = ['Date', 'Time', 'Bid Volume', 'Ask Volume']
   const missingMarket  = requiredMarket.filter(c => !(c in rawBars[0]))
   if (missingMarket.length) throw new Error(
     `Market data file is missing required columns: ${missingMarket.join(', ')}.\n` +
-    `Make sure this is the correct wme_fasterV2.txt export from Sierra Chart.`
+    `Expected a Sierra Chart bar export (wme_fasterV2.txt or EdgeBase_1m.txt / EdgeBase_10seconds.txt).`
   )
+  // Warn (not error) if wave data is absent — file may still be usable for basic analytics
+  const hasWaveData = ('EMA8' in rawBars[0]) || ('2kFL' in rawBars[0])
+  if (!hasWaveData) console.warn('[normalizer] No wave channel data found — wave stats will be empty.')
 
   const bars = rawBars.map(computeDerived)
 

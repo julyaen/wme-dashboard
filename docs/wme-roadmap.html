@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WME — Product Roadmap 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.6;
+    color: #1a1a2e;
+    background: #fff;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 56px 60px;
+  }
+
+  /* Cover */
+  .cover {
+    padding-bottom: 48px;
+    margin-bottom: 48px;
+    border-bottom: 3px solid #1a1a2e;
+  }
+  .cover-label { font-size: 8pt; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #888; margin-bottom: 20px; }
+  .cover-title { font-size: 34pt; font-weight: 700; line-height: 1.1; color: #1a1a2e; margin-bottom: 10px; }
+  .cover-title span { color: #2563eb; }
+  .cover-sub { font-size: 12pt; font-weight: 300; color: #555; margin-bottom: 36px; }
+  .cover-meta { display: flex; gap: 36px; font-size: 9pt; color: #888; }
+  .cover-meta strong { color: #1a1a2e; display: block; font-size: 10pt; margin-bottom: 2px; }
+
+  /* Progress bar */
+  .progress-wrap { margin: 32px 0; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 9pt; color: #555; margin-bottom: 6px; }
+  .progress-track { height: 8px; background: #e8e8f0; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #2563eb, #06b6d4); border-radius: 4px; }
+
+  /* Milestone */
+  .milestone {
+    margin-bottom: 40px;
+    border: 1px solid #e0e0ef;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .milestone-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid #e0e0ef;
+  }
+  .milestone-header.shipped  { background: #f0fdf4; border-left: 5px solid #16a34a; }
+  .milestone-header.active   { background: #eff6ff; border-left: 5px solid #2563eb; }
+  .milestone-header.pending  { background: #f8f8fb; border-left: 5px solid #94a3b8; }
+  .milestone-header.future   { background: #fafafa; border-left: 5px solid #d1d5db; }
+
+  .milestone-num {
+    font-size: 8pt; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: #888; flex-shrink: 0; width: 24px;
+  }
+  .milestone-title { font-size: 12pt; font-weight: 600; color: #1a1a2e; flex: 1; }
+  .milestone-body { padding: 16px 20px; }
+
+  /* Status badges */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 8pt; font-weight: 600; flex-shrink: 0;
+  }
+  .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .badge-shipped  { background: #dcfce7; color: #15803d; }
+  .badge-shipped::before  { background: #16a34a; }
+  .badge-active   { background: #dbeafe; color: #1d4ed8; }
+  .badge-active::before   { background: #2563eb; animation: pulse 1.5s infinite; }
+  .badge-pending  { background: #f1f5f9; color: #475569; }
+  .badge-pending::before  { background: #94a3b8; }
+  .badge-future   { background: #f3f4f6; color: #6b7280; }
+  .badge-future::before   { background: #d1d5db; }
+
+  @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
+
+  /* Task list */
+  .tasks { list-style: none; }
+  .task {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 7px 0; border-bottom: 1px solid #f0f0f5; font-size: 10pt;
+  }
+  .task:last-child { border-bottom: none; }
+  .task-check {
+    width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0;
+    margin-top: 2px; display: flex; align-items: center; justify-content: center;
+    font-size: 9pt; font-weight: 700;
+  }
+  .check-done   { background: #dcfce7; color: #16a34a; }
+  .check-active { background: #dbeafe; color: #2563eb; }
+  .check-open   { background: #f1f5f9; color: #94a3b8; border: 1px solid #e0e0ef; }
+  .task-text { flex: 1; color: #1a1a2e; }
+  .task-text.done { color: #6b7280; }
+  .task-note { font-size: 8.5pt; color: #94a3b8; margin-top: 2px; }
+  .task-tag {
+    font-size: 7.5pt; font-weight: 600; padding: 1px 7px; border-radius: 3px;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .tag-sc   { background: #fef3c7; color: #b45309; }
+  .tag-all  { background: #dbeafe; color: #1d4ed8; }
+  .tag-new  { background: #f3e8ff; color: #7c3aed; }
+  .tag-live { background: #fee2e2; color: #b91c1c; }
+
+  /* Section divider */
+  .section-label {
+    font-size: 8pt; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+    color: #2563eb; margin: 48px 0 16px;
+  }
+
+  /* Summary table */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 9.5pt; }
+  th { background: #1a1a2e; color: #fff; padding: 8px 12px; text-align: left; font-weight: 500; font-size: 8.5pt; }
+  td { padding: 7px 12px; border-bottom: 1px solid #e8e8e8; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8f8fb; }
+
+  /* Callout */
+  .callout { border-left: 4px solid #2563eb; background: #f0f5ff; padding: 12px 16px; margin: 16px 0; border-radius: 0 6px 6px 0; font-size: 10pt; }
+  .callout.amber { border-left-color: #d97706; background: #fffbeb; }
+
+  /* Architecture */
+  .arch { background: #f8f8fb; border: 1px solid #e0e0ef; border-radius: 8px; padding: 20px 24px; margin: 16px 0; font-family: 'Courier New', monospace; font-size: 9pt; line-height: 1.9; color: #1a1a2e; }
+  .arch .dim { color: #94a3b8; }
+  .arch .hi { color: #2563eb; font-weight: bold; }
+
+  hr { border: none; border-top: 1px solid #e8e8e8; margin: 32px 0; }
+  p { margin-bottom: 10px; }
+
+  @media print {
+    body { padding: 36px 48px; }
+    .milestone { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-label">Whatsmyedge · Internal Document</div>
+  <div class="cover-title">Product Roadmap<br/><span>2026</span></div>
+  <div class="cover-sub">Tasks · Status · Dependencies · Build Sequence</div>
+  <div class="cover-meta">
+    <div><strong>Last Updated</strong>May 2026</div>
+    <div><strong>Version</strong>2.0 — Post-Strategy</div>
+    <div><strong>Stage</strong>Active Development</div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>Overall completion</span>
+      <span>Phase 1 of 4 complete</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" style="width: 28%"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="section-label">At a Glance</div>
+
+<table>
+  <tr>
+    <th>Phase</th><th>Name</th><th>Status</th><th>Users Served</th>
+  </tr>
+  <tr>
+    <td><strong>0</strong></td>
+    <td>Foundation — Core Analytics Platform</td>
+    <td><span class="badge badge-shipped">Shipped</span></td>
+    <td>Sierra Chart</td>
+  </tr>
+  <tr>
+    <td><strong>1</strong></td>
+    <td>Platform Entry Point + Indicators Engine</td>
+    <td><span class="badge badge-active">In Progress</span></td>
+    <td>Sierra Chart + Any platform</td>
+  </tr>
+  <tr>
+    <td><strong>2</strong></td>
+    <td>Live Data Bridge</td>
+    <td><span class="badge badge-pending">Pending</span></td>
+    <td>Sierra Chart (as data source for all)</td>
+  </tr>
+  <tr>
+    <td><strong>3</strong></td>
+    <td>Execution Intelligence + Live Session</td>
+    <td><span class="badge badge-future">Future</span></td>
+    <td>All users</td>
+  </tr>
+</table>
+
+<div class="arch">
+<span class="dim">── Target architecture (full) ─────────────────────────────────────────</span>
+Sierra Chart (always on) <span class="hi">→</span> ACSIL study pushes bars <span class="hi">→</span> WME API
+WME stores bars (12-month rolling) <span class="hi">→</span> computes all indicators internally
+John Smith uploads trade CSV (any platform) <span class="hi">→</span> WME matches + enriches
+<span class="hi">→</span> Full analytics: VWAP distance · Delta state · VP POC · Wave · Grade
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="section-label">Phase 0 — Foundation</div>
+
+<div class="milestone">
+  <div class="milestone-header shipped">
+    <div class="milestone-num">00</div>
+    <div class="milestone-title">Core Analytics Platform</div>
+    <span class="badge badge-shipped">Shipped</span>
+  </div>
+  <div class="milestone-body">
+    <p style="font-size:9.5pt; color:#555; margin-bottom:12px;">Everything built to date. Sierra Chart normalized export path, full analytics stack, Supabase backend.</p>
+    <ul class="tasks">
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Sierra Chart normalized XLSX / CSV import</div></div><span class="task-tag tag-sc">SC</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Raw normalizer (two-file SC path: market data + trades)</div></div><span class="task-tag tag-sc">SC</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Dashboard — equity curve, core metrics, trade log, market context</div></div><span class="task-tag tag-all">All</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Analytics — drawdown, rolling expectancy, MFE/MAE, wave alignment, E8, delta%, weekday</div></div><span class="task-tag tag-all">All</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Journal — filterable trade log, full market context per trade</div></div><span class="task-tag tag-all">All</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Playbook — per-setup breakdown, notes, reference screenshots</div></div><span class="task-tag tag-all">All</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Calendar — daily PnL heatmap</div></div><span class="task-tag tag-all">All</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Filter panel — account, session (AM/PM), setups, waves, bands, delta, DW imbalance, time buckets, tags</div></div><span class="task-tag tag-sc">SC</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Account + Session (AM/PM) selector in Topbar</div></div><span class="task-tag tag-sc">SC</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Radix sliders with lag fix (onValueCommit pattern)</div></div><span class="task-tag tag-all">All</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Framer Motion animations + page transitions</div></div><span class="task-tag tag-all">All</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Responsive grid layout</div></div><span class="task-tag tag-all">All</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">R-multiple config (points or flat dollars)</div></div><span class="task-tag tag-all">All</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Supabase backend — sessions, trade tags, setup notes, screenshots</div></div><span class="task-tag tag-all">All</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Trade screenshots — Supabase Storage, floating card expand</div></div><span class="task-tag tag-all">All</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Daily merge mode — new trades accumulate, duplicates skipped by fingerprint</div></div><span class="task-tag tag-sc">SC</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Evening session fix — Sierra Chart logs post-17:00 trades under next calendar day</div></div><span class="task-tag tag-sc">SC</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Supabase connection status panel in Settings</div></div><span class="task-tag tag-all">All</span></li>
+      <li class="task"><div class="task-check check-done">✓</div><div><div class="task-text done">Distribution histograms, delta skew chart with configurable rolling window</div></div><span class="task-tag tag-sc">SC</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="section-label">Phase 1 — Platform Entry Point + Indicators Engine</div>
+
+<div class="milestone">
+  <div class="milestone-header active">
+    <div class="milestone-num">01</div>
+    <div class="milestone-title">Platform Selector — Import Entry Point</div>
+    <span class="badge badge-active">Next to build</span>
+  </div>
+  <div class="milestone-body">
+    <p style="font-size:9.5pt; color:#555; margin-bottom:12px;">Before any new architecture is introduced, users must clearly identify which path they are on. Sierra Chart and non-SC flows must never be mixed or confused.</p>
+    <ul class="tasks">
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Two-card selector on import page — "Sierra Chart" vs "Other Platform"</div><div class="task-note">Prominent, full-width, cannot be missed</div></div><span class="task-tag tag-all">All</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Platform choice persists in localStorage</div><div class="task-note">Set once, remembered — small "switch" link to change</div></div><span class="task-tag tag-all">All</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Import page adapts to show only the relevant flow</div><div class="task-note">SC users see the current normalizer tabs. Others see the new raw data UI.</div></div><span class="task-tag tag-all">All</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Sierra Chart path: no changes — existing flow preserved exactly</div></div><span class="task-tag tag-sc">SC</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Other platform path: placeholder UI with "coming soon" for Phase 1b</div></div><span class="task-tag tag-new">New</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="milestone">
+  <div class="milestone-header active">
+    <div class="milestone-num">02</div>
+    <div class="milestone-title">Indicators Engine — lib/indicators.ts</div>
+    <span class="badge badge-pending">Pending</span>
+  </div>
+  <div class="milestone-body">
+    <p style="font-size:9.5pt; color:#555; margin-bottom:12px;">The core computation engine. Replicates Sierra Chart's studies internally from raw OHLCV bar data. This is what makes WME platform-agnostic. All computations based on Sierra Chart study logic.</p>
+    <ul class="tasks">
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Session detection — RTH vs ETH, session open/close timestamps (US Eastern)</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Daily levels — 8:30 open, 9:30 RTH open</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Range levels — Daily High/Low, Overnight High/Low</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Initial Balance — IB High, IB Low, IB Mid (9:30–10:30 range)</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">VWAP — session-reset, computed from typical price × volume</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">VWAP deviation bands — 1σ, 2σ, 3σ standard deviation from VWAP</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">EMA — any period, computed on close prices</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Wave states — price position relative to EMA on trade timeframe (Green / Red)</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Delta — true (bid/ask volume present) or proxy (OHLCV close-position method)</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Time bucket — 15-minute interval from bar timestamp</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Trade-to-bar matching — join each trade entry to its bar context by timestamp</div></div><span class="task-tag tag-new">New</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="milestone">
+  <div class="milestone-header active">
+    <div class="milestone-num">03</div>
+    <div class="milestone-title">Flexible Import — Non-SC Path</div>
+    <span class="badge badge-pending">Pending</span>
+  </div>
+  <div class="milestone-body">
+    <p style="font-size:9.5pt; color:#555; margin-bottom:12px;">New import flow for non-Sierra Chart users. Accepts any OHLCV bar file and any trade CSV. Column mapping UI handles format differences. Calls the indicators engine. Outputs identical Trade objects to the existing analytics pipeline.</p>
+    <ul class="tasks">
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Two dropzones — market bars file + trade history file</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Column mapping UI — user identifies timestamp, OHLC, volume, bid/ask vol columns</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Auto-detection of common column names (NinjaTrader, TradingView formats)</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Trade column mapping — entry time, direction, entry price, exit price, PnL, quantity</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Run indicators engine on uploaded bars → compute all context</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Match trades to computed bar context by timestamp</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Output identical Trade + MarketBar objects — existing analytics work unchanged</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Save to Supabase session — same merge logic as SC path</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">NinjaTrader export parser (named column set)</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">TradingView export parser</div></div><span class="task-tag tag-new">New</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="section-label">Phase 2 — Live Data Bridge</div>
+
+<div class="milestone">
+  <div class="milestone-header pending">
+    <div class="milestone-num">04</div>
+    <div class="milestone-title">Sierra Chart ACSIL Study — Data Publisher</div>
+    <span class="badge badge-pending">Pending</span>
+  </div>
+  <div class="milestone-body">
+    <p style="font-size:9.5pt; color:#555; margin-bottom:12px;">A custom C++ study running inside Sierra Chart. Triggers on each closed bar and pushes data to the WME server API. Sierra Chart remains on. No local bridge process required beyond the study itself.</p>
+    <ul class="tasks">
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">ACSIL study design — triggers on bar close, collects OHLC + Bid Vol + Ask Vol</div></div><span class="task-tag tag-sc">SC</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">VolumeByPrice collection — price levels + volume distribution per session</div></div><span class="task-tag tag-sc">SC</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">HTTP POST to WME API endpoint on each bar close</div></div><span class="task-tag tag-sc">SC</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Authentication token — study includes API key in POST headers</div></div><span class="task-tag tag-sc">SC</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Retry logic — if server unreachable, buffer and retry</div></div><span class="task-tag tag-sc">SC</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Backfill on reconnect — sends missed bars if connection was interrupted</div></div><span class="task-tag tag-sc">SC</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="milestone">
+  <div class="milestone-header pending">
+    <div class="milestone-num">05</div>
+    <div class="milestone-title">WME Bar Storage + API</div>
+    <span class="badge badge-pending">Pending</span>
+  </div>
+  <div class="milestone-body">
+    <p style="font-size:9.5pt; color:#555; margin-bottom:12px;">Server-side infrastructure to receive, store, and manage the live bar stream. Market data is shared infrastructure — one copy serves all users. 12-month rolling window keeps storage bounded.</p>
+    <ul class="tasks">
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Supabase schema — bars table (timestamp, open, high, low, close, volume, bid_vol, ask_vol, instrument)</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Supabase schema — volume_profile table (session_date, price_level, volume, buy_vol, sell_vol)</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">API endpoint — POST /api/bars — receives bar from ACSIL study, validates, stores</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">API endpoint — POST /api/volume-profile — receives VolumeByPrice per session</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">12-month rolling window — automated cleanup of bars older than 365 days</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Deduplication — upsert by timestamp, no duplicate bars on reconnect</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">RLS policy — bar data is public (same market data for all users)</div></div><span class="task-tag tag-new">New</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="milestone">
+  <div class="milestone-header pending">
+    <div class="milestone-num">06</div>
+    <div class="milestone-title">Trade Enrichment from Live Bar Store</div>
+    <span class="badge badge-pending">Pending</span>
+  </div>
+  <div class="milestone-body">
+    <p style="font-size:9.5pt; color:#555; margin-bottom:12px;">When any user uploads their trade history, WME queries the stored bar data and automatically enriches each trade with full market context. No manual input. No platform dependency.</p>
+    <ul class="tasks">
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Trade-to-bar lookup — query stored bars by entry timestamp, retrieve matching bar</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Run indicators engine on retrieved bars — compute VWAP, bands, EMA, wave, delta</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Volume Profile enrichment — attach POC, VAH, VAL for that session to each trade</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Distance computations — entry to VWAP, entry to POC, entry to IB, entry to bands</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Context summary per trade — "10pts from VWAP, delta against, POC 4pts ahead"</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Fallback — if no stored bar for trade date, flag as unmatched (not a hard error)</div></div><span class="task-tag tag-new">New</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="section-label">Phase 3 — Execution Intelligence + Live Session</div>
+
+<div class="milestone">
+  <div class="milestone-header future">
+    <div class="milestone-num">07</div>
+    <div class="milestone-title">Execution Quality Engine</div>
+    <span class="badge badge-future">Future</span>
+  </div>
+  <div class="milestone-body">
+    <p style="font-size:9.5pt; color:#555; margin-bottom:12px;">Automatic per-trade grade based on market context at entry. No manual input. This is the core differentiator — the thing no competitor can produce because they don't have the order flow data per trade.</p>
+    <ul class="tasks">
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Execution Quality Score (EQS) — automatic A/B/C/D grade per trade</div><div class="task-note">Wave alignment · Delta confirmation · VWAP position · VP POC distance · Band location</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Win rate by EQS grade — "A-grade: 72% WR · B: 58% · C: 41% · D: 29%"</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Grade distribution over time — are you improving or drifting?</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Dimension breakdown — which criteria you miss most often</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Consistency drift alert — "Your average grade dropped from B+ to C this week"</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">EQS display in trade modal and journal</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">EQS filter in filter panel — show only A-grade or B-grade trades</div></div><span class="task-tag tag-new">New</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="milestone">
+  <div class="milestone-header future">
+    <div class="milestone-num">08</div>
+    <div class="milestone-title">Volume Profile Analytics</div>
+    <span class="badge badge-future">Future</span>
+  </div>
+  <div class="milestone-body">
+    <p style="font-size:9.5pt; color:#555; margin-bottom:12px;">First platform to show Volume Profile context per trade. POC distance at entry has direct predictive value — entries near POC are low-probability. Users discover this automatically.</p>
+    <ul class="tasks">
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">POC distance distribution — histogram of how far entries were from session POC</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Win rate by POC distance bucket (&lt;5pts / 5–10pts / 10–20pts / 20pts+)</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Value Area position at entry — inside VA / above VAH / below VAL</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">VP context displayed in trade modal — "Entry was inside Value Area, 6pts below POC"</div></div><span class="task-tag tag-new">New</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="milestone">
+  <div class="milestone-header future">
+    <div class="milestone-num">09</div>
+    <div class="milestone-title">Live Session Dashboard</div>
+    <span class="badge badge-future">Future</span>
+  </div>
+  <div class="milestone-body">
+    <p style="font-size:9.5pt; color:#555; margin-bottom:12px;">Once the live bar stream is active, WME can surface real-time intelligence during the trading session. This shifts WME from post-trade retrospective to always-on co-pilot.</p>
+    <ul class="tasks">
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Supabase Realtime subscription — UI updates as new bars arrive</div></div><span class="task-tag tag-live">Live</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Live session P&L and running win rate</div></div><span class="task-tag tag-live">Live</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Current time bucket — and your historical performance in it</div></div><span class="task-tag tag-live">Live</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Current market context — live VWAP, delta, wave state, POC distance</div></div><span class="task-tag tag-live">Live</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">In-session grade tracker — running EQS average for today's trades</div></div><span class="task-tag tag-live">Live</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Session alerts — "You are in your lowest win-rate time bucket" / "3 consecutive C-grade trades"</div></div><span class="task-tag tag-live">Live</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="milestone">
+  <div class="milestone-header future">
+    <div class="milestone-num">10</div>
+    <div class="milestone-title">Behavioural Layer</div>
+    <span class="badge badge-future">Future</span>
+  </div>
+  <div class="milestone-body">
+    <p style="font-size:9.5pt; color:#555; margin-bottom:12px;">The one dimension that cannot be computed from market data — emotional state. Designed for minimum friction: one 30-second end-of-session log, not per-trade tagging.</p>
+    <ul class="tasks">
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">End-of-session mindset log — Calm / Focused / Anxious / Tilted / Rushed (one click)</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Session-level correlations — mindset state vs win rate, EQS, PnL</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Behavioural pattern detection — "Your tilted sessions cost $X more per trade than calm sessions"</div></div><span class="task-tag tag-new">New</span></li>
+      <li class="task"><div class="task-check check-open"> </div><div><div class="task-text">Mindset history — calendar view of emotional state by session</div></div><span class="task-tag tag-new">New</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- MISSING / DECISIONS -->
+<hr/>
+<div class="section-label">Open Questions + Decisions Required</div>
+
+<div class="callout amber">
+  <strong>1. ACSIL study development</strong>
+  The Sierra Chart C++ study is the only component requiring platform-specific development outside of JavaScript/TypeScript. Decision needed: build in-house vs commission from a Sierra Chart developer.
+</div>
+
+<div class="callout amber">
+  <strong>2. Instrument scope</strong>
+  The live bar store needs to know which instrument(s) to store. Start with MNQ only, or MNQ + NQ + ES from day one? Affects schema design.
+</div>
+
+<div class="callout amber">
+  <strong>3. User authentication</strong>
+  Currently WME is single-user. The live bar store is shared infrastructure. Multi-user means trades are user-scoped but bar data is shared. This requires auth — Supabase Auth is available but not yet implemented.
+</div>
+
+<div class="callout amber">
+  <strong>4. Wave definition for non-SC users</strong>
+  For Sierra Chart users, wave state is computed from a specific indicator. For others, wave state is computed from EMA position. The exact EMA period and logic needs to be defined and documented.
+</div>
+
+<p style="margin-top:40px; font-size:9pt; color:#aaa; text-align:center;">
+  Whatsmyedge · Product Roadmap · May 2026 · Internal
+</p>
+
+</body>
+</html>

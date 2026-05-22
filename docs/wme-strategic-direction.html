@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WME — Strategic Direction 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 11pt;
+    line-height: 1.7;
+    color: #1a1a2e;
+    background: #fff;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 60px 60px;
+  }
+
+  /* Cover */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-bottom: 3px solid #1a1a2e;
+    margin-bottom: 60px;
+    padding-bottom: 60px;
+  }
+  .cover-label {
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 24px;
+  }
+  .cover-title {
+    font-size: 38pt;
+    font-weight: 700;
+    line-height: 1.1;
+    color: #1a1a2e;
+    margin-bottom: 16px;
+  }
+  .cover-title span { color: #2563eb; }
+  .cover-sub {
+    font-size: 14pt;
+    font-weight: 300;
+    color: #555;
+    margin-bottom: 48px;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 40px;
+    font-size: 9pt;
+    color: #888;
+  }
+  .cover-meta strong { color: #1a1a2e; display: block; font-size: 10pt; margin-bottom: 2px; }
+
+  /* Section headers */
+  .section-num {
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #2563eb;
+    margin-bottom: 6px;
+    margin-top: 48px;
+  }
+  h1 {
+    font-size: 22pt;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e8e8e8;
+  }
+  h2 {
+    font-size: 14pt;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-top: 32px;
+    margin-bottom: 10px;
+  }
+  h3 {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #2563eb;
+    margin-top: 20px;
+    margin-bottom: 6px;
+  }
+
+  p { margin-bottom: 12px; }
+
+  ul, ol {
+    padding-left: 20px;
+    margin-bottom: 12px;
+  }
+  li { margin-bottom: 4px; }
+
+  /* Callout boxes */
+  .callout {
+    border-left: 4px solid #2563eb;
+    background: #f0f5ff;
+    padding: 14px 18px;
+    margin: 20px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout.amber {
+    border-left-color: #d97706;
+    background: #fffbeb;
+  }
+  .callout.green {
+    border-left-color: #16a34a;
+    background: #f0fdf4;
+  }
+  .callout.red {
+    border-left-color: #dc2626;
+    background: #fef2f2;
+  }
+  .callout strong { display: block; margin-bottom: 4px; font-size: 10pt; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 10pt;
+  }
+  th {
+    background: #1a1a2e;
+    color: #fff;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 9pt;
+  }
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #e8e8e8;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #f8f8fb; }
+
+  /* Tags */
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 8pt;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .tag-blue { background: #dbeafe; color: #1d4ed8; }
+  .tag-green { background: #dcfce7; color: #15803d; }
+  .tag-red { background: #fee2e2; color: #b91c1c; }
+  .tag-amber { background: #fef3c7; color: #b45309; }
+  .tag-gray { background: #f1f5f9; color: #475569; }
+
+  /* Architecture diagram */
+  .arch {
+    background: #f8f8fb;
+    border: 1px solid #e0e0ef;
+    border-radius: 8px;
+    padding: 24px;
+    margin: 20px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 9.5pt;
+    line-height: 1.8;
+    color: #1a1a2e;
+  }
+  .arch .comment { color: #888; }
+  .arch .highlight { color: #2563eb; font-weight: bold; }
+
+  /* Page break */
+  .page-break { page-break-after: always; margin: 0; }
+
+  /* Quote */
+  blockquote {
+    border-left: 3px solid #d1d5db;
+    padding: 10px 18px;
+    margin: 16px 0;
+    color: #555;
+    font-style: italic;
+  }
+
+  /* Divider */
+  hr {
+    border: none;
+    border-top: 1px solid #e8e8e8;
+    margin: 32px 0;
+  }
+
+  /* Print */
+  @media print {
+    body { padding: 40px 50px; }
+    .cover { min-height: auto; page-break-after: always; }
+    .page-break { page-break-after: always; }
+    h1 { page-break-before: auto; }
+    .no-break { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ COVER ═══ -->
+<div class="cover">
+  <div class="cover-label">Whatsmyedge · Internal Document</div>
+  <div class="cover-title">Strategic Direction<br/><span>2026</span></div>
+  <div class="cover-sub">Market Analysis · Product Positioning · Architecture Decision</div>
+  <div class="cover-meta">
+    <div><strong>Date</strong>May 2026</div>
+    <div><strong>Status</strong>Decision Confirmed</div>
+    <div><strong>Scope</strong>Competitive Analysis → Architecture</div>
+  </div>
+</div>
+
+<!-- ═══ SECTION 1 ═══ -->
+<div class="section-num">Section 01</div>
+<h1>Competitive Landscape</h1>
+
+<p>Eight trading journal platforms were analysed across UX, analytics depth, psychology systems, replay capability, AI integration, simplicity, mobile experience, and pricing pressure. The market falls into four archetypes.</p>
+
+<table>
+  <tr><th>Archetype</th><th>Leaders</th><th>Core Strength</th></tr>
+  <tr><td>Analytics-heavy SaaS</td><td>TradeZella, TraderSync</td><td>Deep metrics + automation</td></tr>
+  <tr><td>Psychology-focused</td><td>Edgewonk</td><td>Behavioural tracking</td></tr>
+  <tr><td>Lightweight legacy</td><td>Tradervue, Trademetria</td><td>Simplicity</td></tr>
+  <tr><td>AI-first newcomers</td><td>Journali, TradeZap, Gainlytics</td><td>AI coaching + UX experimentation</td></tr>
+</table>
+
+<h2>What Every Platform Gets Wrong</h2>
+<ul>
+  <li>Feature bloat — cognitive overload, low actual usage</li>
+  <li>Weak execution intelligence — they track outcomes, not decision quality</li>
+  <li>Generic analytics not adapted to discretionary scalping</li>
+  <li>Poor behaviour correction systems</li>
+  <li>Expensive pricing relative to perceived value</li>
+  <li>Weak mobile UX</li>
+</ul>
+
+<h2>The Biggest Market Gaps (Unowned)</h2>
+
+<div class="callout no-break">
+  <strong>1. Execution Quality Intelligence</strong>
+  Nobody truly measures entry quality, timing precision, trade location quality, or contextual decision quality. Everyone tracks outcomes. Very few track decision quality.
+</div>
+
+<div class="callout no-break">
+  <strong>2. Intraday Futures Scalping Workflow</strong>
+  Almost nobody deeply understands NQ/ES scalpers, DOM traders, order flow traders, session-based execution, wave-based execution, or liquidity behaviour. Massive niche opportunity.
+</div>
+
+<div class="callout no-break">
+  <strong>3. Behavioural Correction Engine</strong>
+  Current systems mostly report problems. They do not correct behaviour, intervene live, or adapt coaching dynamically. There is no true "trading operating system" yet.
+</div>
+
+<h2>What Users Value Most (2026)</h2>
+<ol>
+  <li><strong>Speed + Low Friction</strong> — minimal steps to value</li>
+  <li><strong>Actionable Insights</strong> — not just data, but what to do</li>
+  <li><strong>Behavioural Feedback</strong> — am I doing what I said I would?</li>
+  <li><strong>Clarity of Edge</strong> — does my setup actually work?</li>
+  <li><strong>Clean UX / Premium Feel</strong> — the product must feel sophisticated</li>
+</ol>
+
+<div class="page-break"></div>
+
+<!-- ═══ SECTION 2 ═══ -->
+<div class="section-num">Section 02</div>
+<h1>Edgeful — The Most Relevant Competitor</h1>
+
+<p>Edgeful is not competing with TradeZella or TraderSync. They made one brilliant strategic move: they stepped out of the post-trade journaling category entirely and attacked the <strong>pre-trade decision layer</strong> instead.</p>
+
+<div class="callout green">
+  <strong>Their positioning shift</strong>
+  From: "Track your trades" → To: "Find statistically favorable opportunities"<br/>
+  This is a much stronger emotional pitch. Traders care more about making money tomorrow than reviewing mistakes yesterday.
+</div>
+
+<h2>What Edgeful Excels At</h2>
+<ul>
+  <li>Probability-based decision support (ORB probabilities, gap fill stats, session tendencies, bias dashboards)</li>
+  <li>Strong futures/scalping alignment — feels trader-native, not generic</li>
+  <li>Workflow integration — reports, indicators, screeners, AI, algos in one ecosystem</li>
+  <li>Operational trading — active during session, used during prep, used during execution</li>
+</ul>
+
+<h2>Where Edgeful Is Weak</h2>
+<ul>
+  <li>Not solving trader psychology — assumes "better data = better trader"</li>
+  <li>Massive cognitive load risk — 150+ reports, 50+ indicators</li>
+  <li>Explicitly states: "it's not a trade journal" — lacks behavioural tracking, emotional logging, execution grading, discipline scoring, post-trade reflection</li>
+  <li>Risk of pseudo-quant retail trap — consumers of data instead of executors</li>
+  <li>Aggressive pricing ($49/month entry, $299/month algo tier)</li>
+</ul>
+
+<h2>The Strategic Layer Edgeful Left Open</h2>
+
+<table>
+  <tr><th>Platform</th><th>Core Focus</th></tr>
+  <tr><td>TradeZella</td><td>Journal + analytics</td></tr>
+  <tr><td>TraderSync</td><td>Analytics engine</td></tr>
+  <tr><td>Edgewonk</td><td>Psychology</td></tr>
+  <tr><td>Tradervue</td><td>Simplicity</td></tr>
+  <tr><td>Edgeful</td><td>Decision intelligence + probabilities (pre-trade)</td></tr>
+  <tr><td style="color:#2563eb; font-weight:600;">WME (target)</td><td style="color:#2563eb; font-weight:600;">Post-trade execution quality intelligence with order flow context</td></tr>
+</table>
+
+<blockquote>
+  "TradeZella tries to become the trader dashboard. Edgeful tries to become the trader operating system. Nobody yet has become the trader decision-quality optimizer. That may be the real billion-dollar category."
+</blockquote>
+
+<div class="page-break"></div>
+
+<!-- ═══ SECTION 3 ═══ -->
+<div class="section-num">Section 03</div>
+<h1>Where WME Currently Sits</h1>
+
+<h2>What WME Already Owns</h2>
+<p>WME already occupies the two biggest unowned gaps identified in the competitive analysis — partially.</p>
+
+<div class="callout green no-break">
+  <strong>Unique data layer — no competitor has this</strong>
+  Order flow data embedded per trade: Delta%, DW imbalance (DWask/DWbid), wave alignment (2k/2m/30m/30s), DSS momentum state, VWAP band position, MFE/MAE against market context. This is the exact gap the analysis calls a "massive niche opportunity."
+</div>
+
+<h2>WME Assessed Against User Values</h2>
+<table>
+  <tr><th>User Value</th><th>WME Current Status</th></tr>
+  <tr><td>Speed + Low Friction</td><td><span class="tag tag-amber">Weak</span> Manual file save → upload → two-file normalizer</td></tr>
+  <tr><td>Actionable Insights</td><td><span class="tag tag-amber">Medium</span> Data is there, insights are descriptive not prescriptive</td></tr>
+  <tr><td>Behavioural Feedback</td><td><span class="tag tag-red">Missing</span> Completely absent</td></tr>
+  <tr><td>Clarity of Edge</td><td><span class="tag tag-green">Strong</span> Core product — it's literally in the name</td></tr>
+  <tr><td>Clean UX / Premium Feel</td><td><span class="tag tag-amber">Medium</span> Functional, dark-themed, not visually aspirational</td></tr>
+</table>
+
+<h2>The Three-Layer Market Map</h2>
+<table>
+  <tr><th>Layer</th><th>Owner</th><th>Status</th></tr>
+  <tr><td>Pre-trade decision support</td><td>Edgeful</td><td><span class="tag tag-gray">Covered</span></td></tr>
+  <tr><td>Post-trade outcome tracking</td><td>TradeZella / TraderSync</td><td><span class="tag tag-gray">Crowded</span></td></tr>
+  <tr><td>Post-trade execution quality intelligence</td><td>Nobody</td><td><span class="tag tag-blue">Wide open</span></td></tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ═══ SECTION 4 ═══ -->
+<div class="section-num">Section 04</div>
+<h1>The Bottleneck</h1>
+
+<p>The order flow data (Delta%, waves, DSS, DW imbalance) embedded in WME is powerful — but it is Sierra Chart-specific and approach-specific.</p>
+
+<div class="callout red">
+  <strong>The core constraint</strong>
+  If WME wants to serve a broader market, users would need to: buy Sierra Chart, configure the exact same indicators, learn the same order flow framework, AND then use WME. That is not a product — that is a curriculum with a dashboard attached.
+</div>
+
+<table>
+  <tr><th>What WME Has</th><th>What It Requires From Any New User</th></tr>
+  <tr><td>Wave alignment scoring</td><td>Sierra Chart with specific wave indicators configured</td></tr>
+  <tr><td>Delta% at entry</td><td>Same order flow indicators configured identically</td></tr>
+  <tr><td>DSS momentum</td><td>Understanding of DSS and trading decisions built around it</td></tr>
+  <tr><td>DW imbalance</td><td>The specific DW calculation from a particular setup</td></tr>
+</table>
+
+<p>The same specificity that makes WME powerful for its current user is the exact thing that makes it non-transferable as a general product. The data layer is both the moat and the bottleneck.</p>
+
+<div class="page-break"></div>
+
+<!-- ═══ SECTION 5 ═══ -->
+<div class="section-num">Section 05</div>
+<h1>The Brainstorm</h1>
+
+<h2>Defining The Target User</h2>
+
+<div class="callout blue no-break">
+  <strong>John Smith — the ideal user</strong>
+  <ul style="margin-top:8px;">
+    <li>2–3 years of learning and trading experience</li>
+    <li>Understands market mechanics — structure, bias, direction</li>
+    <li>Can pick the right bias (knows the market is going up)</li>
+    <li>Problem: does not know where exactly to enter</li>
+    <li>Root cause: no clarity on entry parameters or entry pattern</li>
+    <li>Symptom: hesitation at the moment of execution</li>
+    <li>Platform: Sierra Chart, NinjaTrader, TradingView — could be executing on Jigsaw or Bookmap</li>
+  </ul>
+</div>
+
+<p>John Smith does not have a market knowledge problem. He has a <strong>definition problem</strong>. His entry parameters exist in his head as a loose idea, not a defined, measurable checklist. When the moment comes, his brain runs a fuzzy match against vague criteria — and hesitation is what happens when the fuzzy match does not return a confident result.</p>
+
+<p>The platform he uses is irrelevant to his problem. Changing platforms will not fix it.</p>
+
+<h2>The Manual Grading Trap</h2>
+
+<p>An early direction considered was building an entry checklist builder — the user defines 3–6 criteria, grades each trade, WME shows the win rate differential between full adherence and deviation.</p>
+
+<div class="callout red">
+  <strong>Why this fails</strong>
+  Manual grading is the journaling app model. Better UI, same retention problem. Traders won't do it consistently. No consistent data means no value. The loop never closes. This is exactly what every existing platform already does poorly.
+</div>
+
+<h2>Where The Loop Actually Closes</h2>
+
+<p>The loop closes at <strong>data capture</strong>, not post-trade tagging.</p>
+
+<ul>
+  <li><strong>Journaling model:</strong> trade happens → trader remembers to tag it → data exists (maybe)</li>
+  <li><strong>Closed loop:</strong> trade happens → data is captured automatically → grading is computed</li>
+</ul>
+
+<p>For Sierra Chart users, the loop is already closed. The export contains market context at the exact moment of entry. WME does not ask the trader anything — it already knows wave state, VWAP position, Delta%, DSS, time bucket.</p>
+
+<p>The question became: how do you extend that closed loop to non-Sierra Chart users?</p>
+
+<h2>The Framework Insight</h2>
+
+<p>The categories built around the current Sierra Chart workflow are not Sierra Chart-specific — they are universal. Every discretionary trader implicitly evaluates these things before entering. They just never formalise them.</p>
+
+<table>
+  <tr><th>Current WME Label</th><th>Universal Dimension</th><th>User Defines</th></tr>
+  <tr><td>Setup</td><td>Setup Name</td><td>"Wave Reversal Long", "ORB Break", "VWAP Reclaim"</td></tr>
+  <tr><td>Timeframe</td><td>Timeframe</td><td>1m, 5m, 2000 tick, Range bar</td></tr>
+  <tr><td>Wave States</td><td>Market Structure</td><td>Relative to EMA, range, key level</td></tr>
+  <tr><td>VWAP + Bands</td><td>Market Framework</td><td>VWAP, POC, session high/low, key S/R</td></tr>
+  <tr><td>Volume &amp; Pressure</td><td>Order Flow</td><td>Delta confirming, against, neutral</td></tr>
+  <tr><td>DSS / Numeric</td><td>Momentum Indicator</td><td>RSI, divergence, DSS, custom score</td></tr>
+  <tr><td>Time Bucket</td><td>Time of Day</td><td>Their session windows</td></tr>
+  <tr><td>Behavioural Tag</td><td>Mindset</td><td>Calm, focused, anxious, tilted, rushed</td></tr>
+</table>
+
+<p>The structure is WME's. The content is the user's.</p>
+
+<div class="page-break"></div>
+
+<!-- ═══ SECTION 6 ═══ -->
+<div class="section-num">Section 06</div>
+<h1>The Solution</h1>
+
+<h2>The Final Architecture</h2>
+
+<div class="arch">
+<span class="comment">── Path 1: Sierra Chart users (unchanged) ──────────────────────</span>
+SC normalized export → current normalizer → Trade object
+<span class="highlight">Everything pre-computed. No changes. No friction added.</span>
+
+<span class="comment">── Path 2: All other platforms (new) ───────────────────────────</span>
+Raw OHLCV bars + trade CSV → column mapper → indicators engine → Trade object
+<span class="highlight">WME computes everything. John Smith uploads two files. Done.</span>
+
+<span class="comment">── Both paths → identical analytics engine ─────────────────────</span>
+Dashboard · Analytics · Journal · Playbook · Calendar
+<span class="highlight">Same depth of intelligence regardless of platform.</span>
+</div>
+
+<h2>What WME Computes Internally</h2>
+
+<p>Using the same study logic as Sierra Chart, computed inside WME from raw bar data:</p>
+
+<table>
+  <tr><th>Category</th><th>Computed Values</th><th>Data Required</th></tr>
+  <tr><td>Session Layer</td><td>RTH/ETH detection, session open/close</td><td>Timestamp</td></tr>
+  <tr><td>Daily Levels</td><td>8:30 open, 9:30 RTH open, Daily H/L, Overnight H/L</td><td>OHLCV bars</td></tr>
+  <tr><td>Initial Balance</td><td>IB High, IB Low, IB Mid (9:30–10:30)</td><td>OHLCV bars</td></tr>
+  <tr><td>Market Framework</td><td>VWAP, Deviation Bands (1σ / 2σ / 3σ)</td><td>OHLCV + Volume</td></tr>
+  <tr><td>Market Structure</td><td>EMA (any period), Wave states</td><td>OHLCV bars</td></tr>
+  <tr><td>Order Flow</td><td>True Delta (if bid/ask vol present) or proxy Delta</td><td>Bid/Ask vol or OHLCV</td></tr>
+  <tr><td>Time</td><td>Session (AM/PM), time bucket (15-min)</td><td>Timestamp</td></tr>
+  <tr><td>Trade Matching</td><td>Each trade joined to its bar context at entry time</td><td>Both files</td></tr>
+</table>
+
+<h2>John Smith's Two Steps</h2>
+
+<div class="callout green no-break">
+  <strong>The user experience</strong>
+  <ol style="margin-top:8px;">
+    <li>Export market data from any platform (NinjaTrader, TradingView, Sierra Chart) — standard OHLCV bars</li>
+    <li>Export trade history from broker or platform — any CSV with date, direction, price, PnL</li>
+  </ol>
+  <p style="margin-top:8px; margin-bottom:0;">WME normalises everything. Displays the full analytical picture. Including what John Smith did not know he did not know.</p>
+</div>
+
+<h2>The Delta Consideration</h2>
+
+<p>True Delta (ask volume − bid volume) requires bid/ask volume columns in the bar data. Most platforms can export this — NinjaTrader calls them UpVolume/DownVolume, others use BuyVolume/SellVolume. For platforms that cannot, WME uses a proxy calculation derived from bar structure (close position relative to high/low × volume). Directionally accurate for most analytical purposes.</p>
+
+<div class="page-break"></div>
+
+<!-- ═══ SECTION 7 ═══ -->
+<div class="section-num">Section 07</div>
+<h1>Product Positioning</h1>
+
+<h2>What WME Is Not</h2>
+<ul>
+  <li>Not a journaling app — no manual logging required</li>
+  <li>Not a generic analytics dashboard — no multi-asset support, no feature bloat</li>
+  <li>Not an AI coaching platform — no surface-level observations</li>
+  <li>Not a pre-trade probability tool — not competing with Edgeful</li>
+</ul>
+
+<h2>What WME Is</h2>
+
+<div class="callout blue">
+  <strong>Post-trade execution quality intelligence for discretionary futures traders.</strong>
+  WME tells you not just what happened — but whether you executed correctly given the market context that existed at the exact moment of your decision.
+</div>
+
+<h2>The Pitch</h2>
+
+<blockquote>
+  "You know the market. You know your setup. WME tells you whether you're actually trading it — and what it costs you when you don't."
+</blockquote>
+
+<p>This speaks directly to John Smith. It does not require him to learn new indicators. It meets him where he already is, with whatever platform he already uses.</p>
+
+<h2>Competitive Position</h2>
+
+<p>The industry currently asks: <em>"What happened?"</em></p>
+<p>Edgeful asks: <em>"What should you trade next?"</em></p>
+<p>WME asks: <em>"Did you execute your edge correctly — and here is the evidence?"</em></p>
+
+<p>Nobody is answering that third question properly. WME already has the data infrastructure to answer it. No other platform does.</p>
+
+<div class="page-break"></div>
+
+<!-- ═══ SECTION 8 ═══ -->
+<div class="section-num">Section 08</div>
+<h1>Next Steps — Build Sequence</h1>
+
+<h2>Immediate — Platform Selector</h2>
+<p>Before any new architecture is introduced, the import page must have a clear, prominent two-path selector. Sierra Chart users and all other platform users must never see a mixed or confusing import experience.</p>
+
+<div class="arch">
+┌─────────────────────────┐  ┌─────────────────────────┐
+│                         │  │                         │
+│    Sierra Chart         │  │    Other Platform       │
+│                         │  │                         │
+│  Upload your normalized │  │  Upload your raw bars   │
+│  XLSX or CSV export.    │  │  + trade data. WME      │
+│  Everything is already  │  │  computes everything    │
+│  computed.              │  │  automatically.         │
+│                         │  │                         │
+│  [ Select ]             │  │  [ Select ]             │
+└─────────────────────────┘  └─────────────────────────┘
+</div>
+
+<p>The choice persists. A small "switch" link allows changing at any time. The import page adapts to show only the relevant flow.</p>
+
+<h2>Phase 1 — Indicators Engine</h2>
+<p>Build <code>lib/indicators.ts</code> — the internal computation engine. All Sierra Chart studies replicated in JavaScript from raw OHLCV bar data. This is the core of the non-SC path.</p>
+
+<h2>Phase 2 — Flexible Import</h2>
+<p>New import flow for non-SC users. Column mapping UI — user identifies which column is timestamp, direction, PnL, volume, bid/ask volume (if available). WME handles the rest.</p>
+
+<h2>Phase 3 — Updated Normalizer</h2>
+<p>SC path: unchanged. New path calls <code>lib/indicators.ts</code> and produces the identical <code>Trade</code> and <code>MarketBar</code> objects the entire analytics engine already consumes. No downstream changes required.</p>
+
+<hr/>
+
+<div class="callout blue no-break">
+  <strong>Summary of decisions confirmed</strong>
+  <ul style="margin-top:8px;">
+    <li>Sierra Chart path remains unchanged — no disruption to existing workflow</li>
+    <li>Non-SC path: raw bars + trade CSV → WME computes everything internally</li>
+    <li>Both paths produce identical output — same analytics engine serves all users</li>
+    <li>Platform selector on import page — prominent, persistent, no mixed flows</li>
+    <li>Manual trade grading rejected — loop closes at data capture, not user input</li>
+    <li>Target user: John Smith — 2–3 years experience, execution consistency problem, any platform</li>
+    <li>Positioning: post-trade execution quality intelligence, not a journaling app</li>
+  </ul>
+</div>
+
+<p style="margin-top:40px; font-size:9pt; color:#aaa; text-align:center;">
+  Whatsmyedge · Internal Strategic Document · May 2026 · Confidential
+</p>
+
+</body>
+</html>

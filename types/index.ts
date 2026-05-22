@@ -41,10 +41,11 @@ export interface MarketBar {
   '2kEMA8 vs 2kWCL': number
   '2kEMA8 vs 2mWCL': number
   '2kWCL vs 2mWCL': number
-  '30mWave': WaveState
-  '2mWave': WaveState
-  '30sWave': WaveState
   '2kWave': WaveState
+  // Optional — only populated from old wme_fasterV2 format, absent in EdgeBase
+  '30mWave'?: WaveState
+  '2mWave'?: WaveState
+  '30sWave'?: WaveState
   'RawASK-BID': number
   RawAsk: number
   RawBid: number
@@ -65,6 +66,24 @@ export interface MarketBar {
   ATR: number
   IBHigh: number
   IBLow: number
+  // ── EdgeBase fields (new) ──────────────────────────────────────────────────
+  // Volume Profile
+  Daily_POC: number
+  Daily_VAH: number
+  Daily_VAL: number
+  poc30m: number
+  vah30m: number
+  val30m: number
+  // Lunch Hour bracket (12:00–13:30 ET)
+  LH_Hi: number
+  LH_Lo: number
+  // Cumulative Volume Delta as OHLCV
+  CVDOpen: number
+  CVDHigh: number
+  CVDLow: number
+  CVDClose: number
+  // Raw delta from Sierra Chart (Ask Volume − Bid Volume)
+  Delta: number
 }
 
 export interface Trade {

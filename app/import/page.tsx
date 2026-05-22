@@ -166,8 +166,8 @@ export default function ImportPage() {
         <>
           <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
             <DropZone
-              label="Drop wme_fasterV2.txt"
-              sub="Market data · Sierra Chart bar export"
+              label="Drop market data file"
+              sub="EdgeBase_1m.txt · EdgeBase_10seconds.txt · wme_fasterV2.txt"
               accepts=".txt,.csv"
               file={marketFile}
               dragging={dragMarket}

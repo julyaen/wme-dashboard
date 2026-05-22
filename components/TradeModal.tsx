@@ -399,9 +399,10 @@ export default function TradeModal({ trade: t, onClose }: Props) {
           <div>
             <Section title="Wave alignment">
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 4 }}>
-                {(['2kWave','2mWave','30mWave','30sWave'] as const).map(w => (
-                  <WavePill key={w} wave={w} state={t.market[w]} />
-                ))}
+                {(['2kWave','2mWave','30mWave','30sWave'] as const).map(w => {
+                  const state = t.market[w]
+                  return state ? <WavePill key={w} wave={w} state={state} /> : null
+                })}
               </div>
             </Section>
 
